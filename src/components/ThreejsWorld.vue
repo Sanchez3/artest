@@ -185,7 +185,7 @@ export default {
             this.scene.add(boatMesh)
 
             this.onRenderFcts.push(function(delta) {
-                boatMesh.rotation.x += Math.PI * delta
+                // boatMesh.rotation.x += Math.PI * delta
             })
 
 
