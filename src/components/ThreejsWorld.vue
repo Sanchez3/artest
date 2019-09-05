@@ -8,7 +8,7 @@
 <script>
 // import * as THREE from 'three'
 // window.THREE = THREE || {}
-var OrbitControls = require('three-orbit-controls')(THREE)
+// var OrbitControls = require('three-orbit-controls')(THREE)
 // var LegacyJSONLoader = require('../assets/js/LegacyJSONLoader.js')(THREE)
 var LegacyJSONLoader = require('three-legacyjsonloader')(THREE);
 import GLTFLoader from 'three-gltf-loader';
@@ -115,7 +115,8 @@ export default {
             // init controls for camera
             var markerControls = new THREEx.ArMarkerControls(arToolkitContext, that.camera, {
                 type: 'pattern',
-                patternUrl: THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro',
+                patternUrl: `${this.publicPath}pattern/pattern-3.patt`,
+                // patternUrl: THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro',
                 // patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.kanji',
                 // as we controls the camera, set changeMatrixMode: 'cameraTransformMatrix'
                 changeMatrixMode: 'cameraTransformMatrix'
@@ -135,11 +136,13 @@ export default {
             this.scene.add(new THREE.AxesHelper(120))
             this.scene.add(new THREE.AmbientLight(0xFFFFFF)) //环境光
 
+            // ar camera
+            this.camera = new THREE.Camera();
+            this.scene.add(this.camera);
 
-
-            this.camera = new THREE.PerspectiveCamera(30, wWidth / wHeight, 1, 10000)
-            this.camera.position.set(10, 90, 65)
-            this.camera.lookAt(this.scene.position)
+            // this.camera = new THREE.PerspectiveCamera(30, wWidth / wHeight, 1, 10000)
+            // this.camera.position.set(0, 10, 0)
+            // this.camera.lookAt(this.scene.position)
             // this.scene.add(this.camera)
 
             this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
@@ -147,9 +150,9 @@ export default {
             this.renderer.setSize(wWidth, wHeight)
             document.getElementById('canvas-element').appendChild(this.renderer.domElement)
 
-            var orbitControls = new OrbitControls(this.camera, document.getElementById('canvas-element'))
-            orbitControls.target.set(0, 0, 0)
-            orbitControls.update()
+            // var orbitControls = new OrbitControls(this.camera, document.getElementById('canvas-element'))
+            // orbitControls.target.set(0, 0, 0)
+            // orbitControls.update()
 
 
             window.addEventListener('resize', this.onWindowResize, false)
@@ -196,24 +199,25 @@ export default {
             this.threeAssets['DamagedHelmet'].scene.position.x = 10;
             this.scene.add(this.threeAssets['DamagedHelmet'].scene)
 
-            this.threeAssets['Monster'].scene.position.x = 20;
-            this.threeAssets['Monster'].scene.scale.copy(new THREE.Vector3(0.5, 0.5, 0.5))
-            this.scene.add(this.threeAssets['Monster'].scene)
-            var monster = this.threeAssets['Monster'];
+            // this.threeAssets['Monster'].scene.position.x = 20;
+            // this.threeAssets['Monster'].scene.scale.copy(new THREE.Vector3(0.5, 0.5, 0.5))
+            // this.scene.add(this.threeAssets['Monster'].scene)
+            // var monster = this.threeAssets['Monster'];
 
-            var mixer1 = new THREE.AnimationMixer(monster.scene);
-            // console.log(monster)
-            for (var i = 0; i < monster.animations.length; i++) {
-                var animation = monster.animations[i];
-                animation.duration = 3;
-                var action = mixer1.clipAction(animation);
-                action.play();
-            }
+            // var mixer1 = new THREE.AnimationMixer(monster.scene);
+            // // console.log(monster)
+            // for (var i = 0; i < monster.animations.length; i++) {
+            //     var animation = monster.animations[i];
+            //     animation.duration = 3;
+            //     var action = mixer1.clipAction(animation);
+            //     action.play();
+            // }
 
 
 
             this.threeAssets['Soldier'].scene.position.x = 0;
-            this.threeAssets['Soldier'].scene.scale.copy(new THREE.Vector3(2, 2, 2))
+            this.threeAssets['Soldier'].scene.scale.copy(new THREE.Vector3(1, 1, 1))
+            this.threeAssets['Soldier'].scene.rotateX(-Math.PI/2)
             this.scene.add(this.threeAssets['Soldier'].scene)
             var skeleton = new THREE.SkeletonHelper(this.threeAssets['Soldier'].scene);
             skeleton.visible = true;
@@ -230,7 +234,7 @@ export default {
             this.threeAssets['CesiumMan'].scene.scale.copy(new THREE.Vector3(2, 2, 2))
             this.scene.add(this.threeAssets['CesiumMan'].scene)
             var cesiumanims = this.threeAssets['CesiumMan'].animations;
-            console.log(cesiumanims)
+            // console.log(cesiumanims)
             var mixer3 = new THREE.AnimationMixer(this.threeAssets['CesiumMan'].scene)
             // var walkAc = mixer2.clipAction(cesiumanims[0]);
 
@@ -241,8 +245,23 @@ export default {
                 action.play();
             }
 
-            this.allMixers.push(mixer1, mixer2, mixer3);
+            this.allMixers.push(mixer2, mixer3);
 
+
+            var boxgeometry = new THREE.CubeGeometry(1, 1, 1);
+            var boxmaterial = new THREE.MeshNormalMaterial({
+                transparent: true,
+                opacity: 0.5,
+                side: THREE.DoubleSide
+            });
+            var boxmesh = new THREE.Mesh(boxgeometry, boxmaterial);
+            boxmesh.position.y = boxgeometry.parameters.height / 2
+            this.scene.add(boxmesh);
+            var torusgeometry = new THREE.TorusKnotGeometry(0.3, 0.1, 64, 16);
+            var torusmaterial = new THREE.MeshNormalMaterial();
+            var torusmesh = new THREE.Mesh(torusgeometry, torusmaterial);
+            torusmesh.position.y = 0.5
+            this.scene.add(torusmesh);
 
             // var b1_basecolor = this.threeAssets['b1_basecolor']
             // var b1_normal = this.threeAssets['b1_normal']
