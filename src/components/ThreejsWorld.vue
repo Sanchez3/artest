@@ -312,25 +312,10 @@ export default {
             objectLoader.load(`${this.publicPath}model/boat.json`, function(rs) {
                 that.threeAssets['boat'] = rs
             })
-            objectLoader.load(`${this.publicPath}model/b1_copy.json`, function(rs) {
-                that.threeAssets['b1_copy'] = rs
-            })
-            objectLoader.load(`${this.publicPath}model/b1_man.json`, function(rs) {
-                that.threeAssets['b1_man'] = rs
-            })
-            objectLoader.load(`${this.publicPath}model/b1_stage.json`, function(rs) {
-                that.threeAssets['b1_stage'] = rs
-            })
 
             var textureLoader = new THREE.TextureLoader(manager)
             textureLoader.load(`${this.publicPath}model/color.jpg`, function(rs) {
                 that.threeAssets['color'] = rs
-            })
-            textureLoader.load(`${this.publicPath}model/b1_basecolor.jpg`, function(rs) {
-                that.threeAssets['b1_basecolor'] = rs
-            })
-            textureLoader.load(`${this.publicPath}model/b1_normal.jpg`, function(rs) {
-                that.threeAssets['b1_normal'] = rs
             })
 
             var gltfLoader = new GLTFLoader(manager);
