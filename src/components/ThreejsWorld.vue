@@ -10,12 +10,13 @@
 // window.THREE = THREE || {}
 var OrbitControls = require('three-orbit-controls')(THREE)
 // var LegacyJSONLoader = require('../assets/js/LegacyJSONLoader.js')(THREE)
-var LegacyJSONLoader = require('three-legacyjsonloader');
+var LegacyJSONLoader = require('three-legacyjsonloader')(THREE);
+import GLTFLoader from 'three-gltf-loader';
 import Stats from 'stats.js'
 // THREEx.ArToolkitContext.baseURL = '../'
 // require('../assets/js/ar.min.js')
 // require('ar.js/three.js/build/ar.min.js')
-LegacyJSONLoader(THREE);
+// LegacyJSONLoader(THREE);
 export default {
     name: 'ThreejsWorld',
     props: {
@@ -24,13 +25,14 @@ export default {
     data() {
         return {
             scene: '',
-            labelRenderer: '',
+            renderer: '',
             light: '',
             camera: '',
             controls: '',
             publicPath: process.env.BASE_URL,
             threeAssets: [],
             onRenderFcts: [],
+            allMixers: []
         }
     },
     mounted() {
@@ -39,18 +41,19 @@ export default {
         this.loading()
         this.render()
         this.showStats()
+
     },
     methods: {
         showStats() {
             var stats = new Stats()
             stats.showPanel(0) // 0: fps, 1: ms, 2: mb, 3+: custom
-            var fs = document.createElement('div')
-            fs.style.position = 'absolute'
-            fs.style.left = 0
-            fs.style.top = 0
-            fs.style.zIndex = 999
-            fs.appendChild(stats.domElement)
-            document.body.appendChild(fs)
+            // var fs = document.createElement('div')
+            // fs.style.position = 'absolute'
+            // fs.style.left = 0
+            // fs.style.top = 0
+            // fs.style.zIndex = 999
+            // fs.appendChild(stats.domElement)
+            document.body.appendChild(stats.domElement)
 
             function animate() {
                 stats.begin()
@@ -96,11 +99,15 @@ export default {
                 that.camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
             })
             // update artoolkit on every frame
-            this.onRenderFcts.push(function() {
+            this.onRenderFcts.push(function(delta) {
                 if (arToolkitSource.ready === false) return
                 arToolkitContext.update(arToolkitSource.domElement)
                 // update scene.visible if the marker is seen
-                that.scene.visible = that.camera.visible
+                // that.scene.visible = that.camera.visible
+                for (var i = 0; i < that.allMixers.length; i++) {
+                    that.allMixers[i].update(delta)
+                }
+
             })
             ////////////////////////////////////////////////////////////////////////////////
             //          Create a ArMarkerControls
@@ -114,17 +121,20 @@ export default {
                 changeMatrixMode: 'cameraTransformMatrix'
             })
             // as we do changeMatrixMode: 'cameraTransformMatrix', start with invisible scene
-            that.scene.visible = false
+            // that.scene.visible = false
 
         },
         init() {
             var wWidth = window.innerWidth
             var wHeight = window.innerHeight
+            this.clock = new THREE.Clock();
 
             this.scene = new THREE.Scene()
             this.scene.add(new THREE.AmbientLight(0x999999)) //环境光
             this.scene.add(new THREE.GridHelper(1000, 100))
             this.scene.add(new THREE.AxesHelper(120))
+            this.scene.add(new THREE.AmbientLight(0xFFFFFF)) //环境光
+
 
 
             this.camera = new THREE.PerspectiveCamera(30, wWidth / wHeight, 1, 10000)
@@ -154,8 +164,6 @@ export default {
             this.onRenderFcts.push(function() {
                 that.renderer.render(that.scene, that.camera)
             })
-
-
             var lastTimeMsec = null
             requestAnimationFrame(function animate(nowMsec) {
                 requestAnimationFrame(animate);
@@ -169,6 +177,7 @@ export default {
             })
         },
         addObj() {
+            var that = this;
             var texture = this.threeAssets['color']
             var boatGeo = this.threeAssets['boat']
             var boatMat = new THREE.MeshStandardMaterial({
@@ -181,12 +190,95 @@ export default {
                 side: THREE.DoubleSide
             })
             var boatMesh = new THREE.Mesh(boatGeo, boatMat)
-            boatMesh.position.set(0, 0, 0)
+            boatMesh.position.set(30, 0, 0)
             this.scene.add(boatMesh)
+            // console.log(this.threeAssets['DamagedHelmet'])
+            this.threeAssets['DamagedHelmet'].scene.position.x = 10;
+            this.scene.add(this.threeAssets['DamagedHelmet'].scene)
 
-            this.onRenderFcts.push(function(delta) {
-                // boatMesh.rotation.x += Math.PI * delta
-            })
+            this.threeAssets['Monster'].scene.position.x = 20;
+            this.threeAssets['Monster'].scene.scale.copy(new THREE.Vector3(0.5, 0.5, 0.5))
+            this.scene.add(this.threeAssets['Monster'].scene)
+            var monster = this.threeAssets['Monster'];
+
+            var mixer1 = new THREE.AnimationMixer(monster.scene);
+            // console.log(monster)
+            for (var i = 0; i < monster.animations.length; i++) {
+                var animation = monster.animations[i];
+                animation.duration = 3;
+                var action = mixer1.clipAction(animation);
+                action.play();
+            }
+
+
+
+            this.threeAssets['Soldier'].scene.position.x = 0;
+            this.threeAssets['Soldier'].scene.scale.copy(new THREE.Vector3(2, 2, 2))
+            this.scene.add(this.threeAssets['Soldier'].scene)
+            var skeleton = new THREE.SkeletonHelper(this.threeAssets['Soldier'].scene);
+            skeleton.visible = true;
+            this.scene.add(skeleton);
+
+            var soilderanims = this.threeAssets['Soldier'].animations;
+            // console.log(soilderanims)
+            var mixer2 = new THREE.AnimationMixer(this.threeAssets['Soldier'].scene)
+            var walkAc = mixer2.clipAction(soilderanims[3]);
+            walkAc.play();
+
+            var cesiuman = this.threeAssets['CesiumMan']
+            this.threeAssets['CesiumMan'].scene.position.x = -10;
+            this.threeAssets['CesiumMan'].scene.scale.copy(new THREE.Vector3(2, 2, 2))
+            this.scene.add(this.threeAssets['CesiumMan'].scene)
+            var cesiumanims = this.threeAssets['CesiumMan'].animations;
+            console.log(cesiumanims)
+            var mixer3 = new THREE.AnimationMixer(this.threeAssets['CesiumMan'].scene)
+            // var walkAc = mixer2.clipAction(cesiumanims[0]);
+
+            for (var j = 0; j < cesiuman.animations.length; j++) {
+                var animation = cesiuman.animations[j];
+                animation.duration = 3;
+                var action = mixer3.clipAction(animation);
+                action.play();
+            }
+
+            this.allMixers.push(mixer1, mixer2, mixer3);
+
+
+            // var b1_basecolor = this.threeAssets['b1_basecolor']
+            // var b1_normal = this.threeAssets['b1_normal']
+            // var geo1=this.threeAssets['b1_man'];
+
+            // var b1geo = new THREE.BufferGeometry().fromGeometry(geo1);
+            // b1geo.addAttribute('bones',geo1.bones)
+            // b1geo.addAttribute('animations',geo1.animations)
+            // // b1geo.bones=geo1.bones;
+            // // b1geo.animations=geo1.animations
+            // console.log(this.threeAssets['b1_man'])
+            // var b1mat = new THREE.MeshStandardMaterial({
+            //     color: 13290186,
+            //     metalness: 0,
+            //     emissive: 6579300,
+            //     emissiveMap: b1_normal,
+            //     map: b1_normal,
+            //     normalMap: b1_basecolor,
+            //     roughness: .5,
+            //     skinning: true,
+            //     side: THREE.DoubleSide
+            // })
+            // // b1_mat.skinning = true;
+            // // var b1_Mesh = new THREE.MeshStandardMaterial();
+
+            // var b1_Mesh = new THREE.SkinnedMesh(geo1, b1mat);
+            // var mixer=new THREE.AnimationMixer(b1_Mesh); 
+            // console.log(b1geo.animations)
+            // var action =mixer.clipAction(b1geo.animations[0]);
+            // action.play();
+
+            // this.scene.add(b1_Mesh)
+
+            // this.onRenderFcts.push(function(delta) {
+            //     // boatMesh.rotation.x += Math.PI * delta
+            // })
 
 
         },
@@ -220,11 +312,46 @@ export default {
             objectLoader.load(`${this.publicPath}model/boat.json`, function(rs) {
                 that.threeAssets['boat'] = rs
             })
+            objectLoader.load(`${this.publicPath}model/b1_copy.json`, function(rs) {
+                that.threeAssets['b1_copy'] = rs
+            })
+            objectLoader.load(`${this.publicPath}model/b1_man.json`, function(rs) {
+                that.threeAssets['b1_man'] = rs
+            })
+            objectLoader.load(`${this.publicPath}model/b1_stage.json`, function(rs) {
+                that.threeAssets['b1_stage'] = rs
+            })
+
             var textureLoader = new THREE.TextureLoader(manager)
             textureLoader.load(`${this.publicPath}model/color.jpg`, function(rs) {
                 that.threeAssets['color'] = rs
             })
+            textureLoader.load(`${this.publicPath}model/b1_basecolor.jpg`, function(rs) {
+                that.threeAssets['b1_basecolor'] = rs
+            })
+            textureLoader.load(`${this.publicPath}model/b1_normal.jpg`, function(rs) {
+                that.threeAssets['b1_normal'] = rs
+            })
 
+            var gltfLoader = new GLTFLoader(manager);
+            gltfLoader.load(`${this.publicPath}model/Monster/Monster.gltf`, function(rs) {
+                that.threeAssets['Monster'] = rs
+            })
+            gltfLoader.load(`${this.publicPath}model/CesiumMan/CesiumMan.gltf`, function(rs) {
+                that.threeAssets['CesiumMan'] = rs
+            })
+            gltfLoader.load(`${this.publicPath}model/DamagedHelmet/DamagedHelmet.gltf`, function(rs) {
+                that.threeAssets['DamagedHelmet'] = rs
+            })
+            gltfLoader.load(`${this.publicPath}model/CesiumMilkTruck/CesiumMilkTruck.gltf`, function(rs) {
+                that.threeAssets['CesiumMilkTruck'] = rs
+            })
+            gltfLoader.load(`${this.publicPath}model/BotSkinned/Bot_Skinned.gltf`, function(rs) {
+                that.threeAssets['BotSkinned'] = rs
+            })
+            gltfLoader.load(`${this.publicPath}model/Soldier.glb`, function(rs) {
+                that.threeAssets['Soldier'] = rs
+            })
 
         }
 
@@ -258,5 +385,6 @@ a {
     height: 100%;
     left: 0;
     top: 0;
+    z-index: 998
 }
 </style>
