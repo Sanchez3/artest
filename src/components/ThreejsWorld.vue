@@ -103,7 +103,7 @@ export default {
                 if (arToolkitSource.ready === false) return
                 arToolkitContext.update(arToolkitSource.domElement)
                 // update scene.visible if the marker is seen
-                // that.scene.visible = that.camera.visible
+                that.scene.visible = that.camera.visible
                 for (var i = 0; i < that.allMixers.length; i++) {
                     that.allMixers[i].update(delta)
                 }
@@ -121,7 +121,7 @@ export default {
                 changeMatrixMode: 'cameraTransformMatrix'
             })
             // as we do changeMatrixMode: 'cameraTransformMatrix', start with invisible scene
-            // that.scene.visible = false
+            that.scene.visible = false
 
         },
         init() {
