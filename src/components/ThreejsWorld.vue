@@ -41,7 +41,7 @@ export default {
         this.init()
         // this.initAR()
         this.loading()
-        this.render()
+        // this.render()
         this.showStats()
 
     },
@@ -198,6 +198,22 @@ export default {
 
 
             window.addEventListener('resize', this.onWindowResize, false)
+
+            var lastTimeMsec = null;
+            var that=this;
+            requestAnimationFrame(function animate(nowMsec) {
+                requestAnimationFrame(animate);
+                lastTimeMsec = lastTimeMsec || nowMsec - 1000 / 60
+                var deltaMsec = Math.min(200, nowMsec - lastTimeMsec)
+                lastTimeMsec = nowMsec
+                // call each update function
+                that.renderer.render(that.scene, that.camera)
+
+                that.onRenderFcts.forEach(function(onRenderFct) {
+                    onRenderFct(deltaMsec / 1000, nowMsec / 1000)
+                })
+            })
+
         },
         onWindowResize() {
             this.camera.aspect = window.innerWidth / window.innerHeight
