@@ -108,9 +108,9 @@ export default {
                 // update scene.visible if the marker is seen
                 // if(that.scene.visible) return
                 that.scene.visible = that.camera.visible
-                // for (var i = 0; i < that.allMixers.length; i++) {
-                //     that.allMixers[i].update(delta)
-                // }
+                for (var i = 0; i < that.allMixers.length; i++) {
+                    that.allMixers[i].update(delta)
+                }
             })
 
             // this.onRenderFcts.push(function(delta) {
@@ -383,14 +383,14 @@ export default {
             // this.allMixers.push(mixer)
 
             // this.allMixers.push(mixer2)
-            this.onRenderFcts.push(function(delta) {
-                // console.log(that.allMixers)
-                // if(that.allMixers.length<1) return;
-                if (!that.scene.visible) return
-                for (var i = 0; i < that.allMixers.length; i++) {
-                    that.allMixers[i].update(delta)
-                }
-            })
+            // this.onRenderFcts.push(function(delta) {
+            //     // console.log(that.allMixers)
+            //     // if(that.allMixers.length<1) return;
+            //     if (!that.scene.visible) return
+            //     for (var i = 0; i < that.allMixers.length; i++) {
+            //         that.allMixers[i].update(delta)
+            //     }
+            // })
 
         },
         loading() {
