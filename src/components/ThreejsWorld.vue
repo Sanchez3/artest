@@ -335,17 +335,17 @@ export default {
             testModel.rotateX(-Math.PI / 2);
             // testModel.rotateY(Math.PI );
 
-            var testSkeleton = new THREE.SkeletonHelper(testModel);
-            testSkeleton.visible = true;
-            this.scene.add(testSkeleton);
-            var animations = testGltf.animations;
-            var mixer = new THREE.AnimationMixer(testModel)
+            // var testSkeleton = new THREE.SkeletonHelper(testModel);
+            // testSkeleton.visible = true;
+            // this.scene.add(testSkeleton);
+            // var animations = testGltf.animations;
+            // var mixer = new THREE.AnimationMixer(testModel)
 
-            for (var i = 0; i < animations.length; i++) {
-                var action = mixer.clipAction(animations[i]);
-                action.play();
-            }
-            this.allMixers.push(mixer)
+            // for (var i = 0; i < animations.length; i++) {
+            //     var action = mixer.clipAction(animations[i]);
+            //     action.play();
+            // }
+            // this.allMixers.push(mixer)
 
             // var gltf = this.threeAssets['BotSkinned'];
             // var model = this.threeAssets['BotSkinned'].scene;
