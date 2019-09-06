@@ -78,7 +78,11 @@ export default {
                 // sourceType : 'video',
                 // sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/videos/headtracking.mp4',
             })
+
             arToolkitSource.init(function onReady() {
+                onResize()
+            })
+            window.addEventListener('resize', function() {
                 onResize()
             })
 
@@ -106,23 +110,8 @@ export default {
                 if (arToolkitSource.ready === false) return
                 arToolkitContext.update(arToolkitSource.domElement)
                 // update scene.visible if the marker is seen
-                // if(that.scene.visible) return
                 that.scene.visible = that.camera.visible
-                for (var i = 0; i < that.allMixers.length; i++) {
-                    that.allMixers[i].update(delta)
-                }
             })
-
-            // this.onRenderFcts.push(function(delta) {
-            //     if (arToolkitSource.ready === false) return
-            //     // arToolkitContext.update(arToolkitSource.domElement)
-            //     // update scene.visible if the marker is seen
-            //     if(!that.scene.visible) return;
-            //     // that.scene.visible = that.camera.visible
-            //     for (var i = 0; i < that.allMixers.length; i++) {
-            //         that.allMixers[i].update(delta)
-            //     }
-            // })
 
             ////////////////////////////////////////////////////////////////////////////////
             //          Create a ArMarkerControls
@@ -200,7 +189,7 @@ export default {
             window.addEventListener('resize', this.onWindowResize, false)
 
             var lastTimeMsec = null;
-            var that=this;
+            var that = this;
             requestAnimationFrame(function animate(nowMsec) {
                 requestAnimationFrame(animate);
                 lastTimeMsec = lastTimeMsec || nowMsec - 1000 / 60
@@ -222,18 +211,16 @@ export default {
         },
         render() {
             var that = this;
-            // this.onRenderFcts.push(function() {
-            //     that.renderer.render(that.scene, that.camera)
-            // })
             var lastTimeMsec = null;
-
+            this.onRenderFcts.push(function() {
+                that.renderer.render(that.scene, that.camera)
+            })
             requestAnimationFrame(function animate(nowMsec) {
                 requestAnimationFrame(animate);
                 lastTimeMsec = lastTimeMsec || nowMsec - 1000 / 60
                 var deltaMsec = Math.min(200, nowMsec - lastTimeMsec)
                 lastTimeMsec = nowMsec
                 // call each update function
-                that.renderer.render(that.scene, that.camera)
 
                 that.onRenderFcts.forEach(function(onRenderFct) {
                     onRenderFct(deltaMsec / 1000, nowMsec / 1000)
@@ -403,8 +390,8 @@ export default {
 
             manager.onLoad = function() {
                 console.log('Loading complete!')
-                that.addObj();
                 that.initAR();
+                that.addObj();
                 // that.addObj && that.addObj()
             }
 
