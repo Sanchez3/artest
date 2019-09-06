@@ -135,7 +135,7 @@ export default {
             this.clock = new THREE.Clock();
 
             this.scene = new THREE.Scene()
-
+            this.scene.visible = false
             this.scene.add(new THREE.GridHelper(1000, 100));
             this.scene.add(new THREE.AxesHelper(20));
 
@@ -155,7 +155,7 @@ export default {
 
             this.scene.add(lightHelper);
             this.scene.add(dirLight);
-
+             
 
 
 
@@ -196,7 +196,7 @@ export default {
                 var deltaMsec = Math.min(200, nowMsec - lastTimeMsec)
                 lastTimeMsec = nowMsec
                 // call each update function
-                that.renderer&&that.renderer.render(that.scene, that.camera)
+                that.renderer && that.renderer.render(that.scene, that.camera)
 
                 that.onRenderFcts.forEach(function(onRenderFct) {
                     onRenderFct(deltaMsec / 1000, nowMsec / 1000)
@@ -333,6 +333,8 @@ export default {
 
             testModel.scale.copy(new THREE.Vector3(0.003, 0.003, 0.003))
             testModel.rotateX(-Math.PI / 2);
+
+            that.initAR();
             // testModel.rotateY(Math.PI );
 
             // var testSkeleton = new THREE.SkeletonHelper(testModel);
@@ -398,7 +400,6 @@ export default {
 
             manager.onLoad = function() {
                 console.log('Loading complete!')
-                that.initAR();
                 that.addObj();
                 // that.addObj && that.addObj()
             }
