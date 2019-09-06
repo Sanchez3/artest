@@ -39,7 +39,7 @@ export default {
     },
     mounted() {
         this.init()
-        this.initAR()
+        // this.initAR()
         this.loading()
         this.render()
         this.showStats()
@@ -98,6 +98,7 @@ export default {
             // initialize it
             arToolkitContext.init(function onCompleted() {
                 // copy projection matrix to camera
+                // if(that.scene.visible) return
                 that.camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
             })
             // update artoolkit on every frame
@@ -105,7 +106,19 @@ export default {
                 if (arToolkitSource.ready === false) return
                 arToolkitContext.update(arToolkitSource.domElement)
                 // update scene.visible if the marker is seen
+                // if(that.scene.visible) return
                 that.scene.visible = that.camera.visible
+                // for (var i = 0; i < that.allMixers.length; i++) {
+                //     that.allMixers[i].update(delta)
+                // }
+            })
+
+            this.onRenderFcts.push(function(delta) {
+                if (arToolkitSource.ready === false) return
+                // arToolkitContext.update(arToolkitSource.domElement)
+                // update scene.visible if the marker is seen
+                if(!that.scene.visible) return;
+                // that.scene.visible = that.camera.visible
                 for (var i = 0; i < that.allMixers.length; i++) {
                     that.allMixers[i].update(delta)
                 }
@@ -124,7 +137,7 @@ export default {
                 changeMatrixMode: 'cameraTransformMatrix'
             })
             // as we do changeMatrixMode: 'cameraTransformMatrix', start with invisible scene
-            that.scene.visible = false
+            // that.scene.visible = false
 
         },
         init() {
@@ -166,9 +179,9 @@ export default {
             this.camera = new THREE.Camera();
             this.scene.add(this.camera);
 
-            // this.camera = new THREE.PerspectiveCamera(10, wWidth / wHeight, 1, 1000)
-            // this.camera.position.set(0, 10, 0)
-            // this.camera.lookAt(this.scene.position)
+            // this.camera = new THREE.PerspectiveCamera(45, wWidth / wHeight, 1, 1000)
+            // this.camera.position.set(10, 10, 1)
+            // this.camera.lookAt(0,0,0)
 
             // var orbitControls = new OrbitControls(this.camera, this.renderer.domElement)
             // orbitControls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
@@ -374,6 +387,7 @@ export default {
             manager.onLoad = function() {
                 console.log('Loading complete!')
                 that.addObj();
+                that.initAR();
                 // that.addObj && that.addObj()
             }
 
