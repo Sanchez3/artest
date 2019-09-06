@@ -8,6 +8,8 @@
 <script>
 // import * as THREE from 'three'
 // window.THREE = THREE || {}
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+// import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 // var OrbitControls = require('three-orbit-controls')(THREE)
 // var LegacyJSONLoader = require('../assets/js/LegacyJSONLoader.js')(THREE)
 var LegacyJSONLoader = require('three-legacyjsonloader')(THREE);
@@ -107,8 +109,8 @@ export default {
                 for (var i = 0; i < that.allMixers.length; i++) {
                     that.allMixers[i].update(delta)
                 }
-
             })
+
             ////////////////////////////////////////////////////////////////////////////////
             //          Create a ArMarkerControls
             ////////////////////////////////////////////////////////////////////////////////
@@ -131,28 +133,55 @@ export default {
             this.clock = new THREE.Clock();
 
             this.scene = new THREE.Scene()
-            this.scene.add(new THREE.AmbientLight(0x999999)) //环境光
-            this.scene.add(new THREE.GridHelper(1000, 100))
-            this.scene.add(new THREE.AxesHelper(120))
-            this.scene.add(new THREE.AmbientLight(0xFFFFFF)) //环境光
 
-            // ar camera
-            this.camera = new THREE.Camera();
-            this.scene.add(this.camera);
+            this.scene.add(new THREE.GridHelper(1000, 100));
+            this.scene.add(new THREE.AxesHelper(20));
 
-            // this.camera = new THREE.PerspectiveCamera(30, wWidth / wHeight, 1, 10000)
-            // this.camera.position.set(0, 10, 0)
-            // this.camera.lookAt(this.scene.position)
-            // this.scene.add(this.camera)
+            var pointLight = new THREE.PointLight(0xffffff, 1, 100);
+            pointLight.position.set(0, 4, 0); // default; light shining from top
+            pointLight.castShadow = true;
+            this.scene.add(pointLight);
+            var sphereSize = 1;
+            var pointLightHelper = new THREE.PointLightHelper(pointLight, sphereSize);
+            this.scene.add(pointLightHelper);
+
+            var dirLight = new THREE.DirectionalLight(0xffffff, 5);
+            // dirLight.position.set(10, 0, 0);
+            dirLight.position.set(  0, 5, 0)
+
+            var lightHelper = new THREE.DirectionalLightHelper(dirLight, 5);
+
+            this.scene.add(lightHelper);
+            this.scene.add(dirLight);
+
+
+
 
             this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
             this.renderer.setPixelRatio(window.devicePixelRatio)
             this.renderer.setSize(wWidth, wHeight)
             document.getElementById('canvas-element').appendChild(this.renderer.domElement)
 
-            // var orbitControls = new OrbitControls(this.camera, document.getElementById('canvas-element'))
-            // orbitControls.target.set(0, 0, 0)
-            // orbitControls.update()
+            // ar camera
+            this.camera = new THREE.Camera();
+            this.scene.add(this.camera);
+
+            // this.camera = new THREE.PerspectiveCamera(10, wWidth / wHeight, 1, 1000)
+            // this.camera.position.set(0, 10, 0)
+            // this.camera.lookAt(this.scene.position)
+
+            // var orbitControls = new OrbitControls(this.camera, this.renderer.domElement)
+            // orbitControls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+            // orbitControls.dampingFactor = 0.05;
+            // orbitControls.screenSpacePanning = false;
+            // orbitControls.minDistance = 10;
+            // orbitControls.maxDistance = 500;
+            // orbitControls.maxPolarAngle = Math.PI / 2;
+            // this.onRenderFcts.push(function() {
+            //     orbitControls.update();
+            // })
+
+            // this.scene.add(this.camera)
 
 
             window.addEventListener('resize', this.onWindowResize, false)
@@ -164,23 +193,69 @@ export default {
         },
         render() {
             var that = this;
-            this.onRenderFcts.push(function() {
-                that.renderer.render(that.scene, that.camera)
-            })
-            var lastTimeMsec = null
+            // this.onRenderFcts.push(function() {
+            //     that.renderer.render(that.scene, that.camera)
+            // })
+            var lastTimeMsec = null;
+
             requestAnimationFrame(function animate(nowMsec) {
                 requestAnimationFrame(animate);
                 lastTimeMsec = lastTimeMsec || nowMsec - 1000 / 60
                 var deltaMsec = Math.min(200, nowMsec - lastTimeMsec)
                 lastTimeMsec = nowMsec
                 // call each update function
+                that.renderer.render(that.scene, that.camera)
+
                 that.onRenderFcts.forEach(function(onRenderFct) {
                     onRenderFct(deltaMsec / 1000, nowMsec / 1000)
                 })
             })
         },
+        addGlb(name) {
+            var that = this;
+            var gltf = this.threeAssets[name];
+            var model = this.threeAssets[name].scene;
+            this.scene.add(model)
+
+            model.traverse(function(object) {
+                if (object.isMesh) object.castShadow = true;
+            });
+            // var skeleton = new THREE.SkeletonHelper(model);
+            // skeleton.visible = true;
+            // this.scene.add(skeleton);
+
+            model.position.z = 1;
+
+            model.scale.copy(new THREE.Vector3(0.003, 0.003, 0.003))
+            model.rotateX(-Math.PI / 2)
+            // model.rotateY(Math.PI)
+
+            var animations = gltf.animations;
+            var mixer = new THREE.AnimationMixer(model)
+
+            for (var i = 0; i < animations.length; i++) {
+                var action = mixer.clipAction(animations[i]);
+                action.play();
+            }
+            // var action = mixer.clipAction(animations[3]);
+            // action.play();
+            return mixer;
+
+            // this.allMixers.push(mixer)
+
+
+        },
         addObj() {
             var that = this;
+
+            var floorGeometry = new THREE.PlaneGeometry(20, 20);
+            var floorMaterial = new THREE.ShadowMaterial();
+            // floorMaterial.opacity = 0.3;
+            var floorMesh = new THREE.Mesh(floorGeometry, floorMaterial);
+            floorMesh.rotation.x = -Math.PI / 2;
+            floorMesh.receiveShadow = true;
+            this.scene.add(floorMesh);
+
             var texture = this.threeAssets['color']
             var boatGeo = this.threeAssets['boat']
             var boatMat = new THREE.MeshStandardMaterial({
@@ -196,109 +271,96 @@ export default {
             boatMesh.position.set(30, 0, 0)
             this.scene.add(boatMesh)
             // console.log(this.threeAssets['DamagedHelmet'])
-            this.threeAssets['DamagedHelmet'].scene.position.x = 10;
-            this.scene.add(this.threeAssets['DamagedHelmet'].scene)
+            // this.threeAssets['DamagedHelmet'].scene.position.x = 10;
+            // this.scene.add(this.threeAssets['DamagedHelmet'].scene)
 
-            // this.threeAssets['Monster'].scene.position.x = 20;
-            // this.threeAssets['Monster'].scene.scale.copy(new THREE.Vector3(0.5, 0.5, 0.5))
-            // this.scene.add(this.threeAssets['Monster'].scene)
-            // var monster = this.threeAssets['Monster'];
+            // var cesiuman = this.threeAssets['CesiumMan']
+            // this.threeAssets['CesiumMan'].scene.position.x = -10;
+            // this.threeAssets['CesiumMan'].scene.scale.copy(new THREE.Vector3(2, 2, 2))
+            // this.scene.add(this.threeAssets['CesiumMan'].scene)
+            // var cesiumanims = this.threeAssets['CesiumMan'].animations;
+            // // console.log(cesiumanims)
+            // var mixer3 = new THREE.AnimationMixer(this.threeAssets['CesiumMan'].scene)
+            // // var walkAc = mixer2.clipAction(cesiumanims[0]);
 
-            // var mixer1 = new THREE.AnimationMixer(monster.scene);
-            // // console.log(monster)
-            // for (var i = 0; i < monster.animations.length; i++) {
-            //     var animation = monster.animations[i];
+            // for (var j = 0; j < cesiuman.animations.length; j++) {
+            //     var animation = cesiuman.animations[j];
             //     animation.duration = 3;
-            //     var action = mixer1.clipAction(animation);
+            //     var action = mixer3.clipAction(animation);
             //     action.play();
             // }
 
+            // this.allMixers.push(mixer3);
 
 
-            this.threeAssets['Soldier'].scene.position.x = 0;
-            this.threeAssets['Soldier'].scene.scale.copy(new THREE.Vector3(1, 1, 1))
-            this.threeAssets['Soldier'].scene.rotateX(-Math.PI/2)
-            this.scene.add(this.threeAssets['Soldier'].scene)
-            var skeleton = new THREE.SkeletonHelper(this.threeAssets['Soldier'].scene);
-            skeleton.visible = true;
-            this.scene.add(skeleton);
-
-            var soilderanims = this.threeAssets['Soldier'].animations;
-            // console.log(soilderanims)
-            var mixer2 = new THREE.AnimationMixer(this.threeAssets['Soldier'].scene)
-            var walkAc = mixer2.clipAction(soilderanims[3]);
-            walkAc.play();
-
-            var cesiuman = this.threeAssets['CesiumMan']
-            this.threeAssets['CesiumMan'].scene.position.x = -10;
-            this.threeAssets['CesiumMan'].scene.scale.copy(new THREE.Vector3(2, 2, 2))
-            this.scene.add(this.threeAssets['CesiumMan'].scene)
-            var cesiumanims = this.threeAssets['CesiumMan'].animations;
-            // console.log(cesiumanims)
-            var mixer3 = new THREE.AnimationMixer(this.threeAssets['CesiumMan'].scene)
-            // var walkAc = mixer2.clipAction(cesiumanims[0]);
-
-            for (var j = 0; j < cesiuman.animations.length; j++) {
-                var animation = cesiuman.animations[j];
-                animation.duration = 3;
-                var action = mixer3.clipAction(animation);
-                action.play();
-            }
-
-            this.allMixers.push(mixer2, mixer3);
-
-
-            var boxgeometry = new THREE.CubeGeometry(1, 1, 1);
-            var boxmaterial = new THREE.MeshNormalMaterial({
-                transparent: true,
-                opacity: 0.5,
-                side: THREE.DoubleSide
-            });
-            var boxmesh = new THREE.Mesh(boxgeometry, boxmaterial);
-            boxmesh.position.y = boxgeometry.parameters.height / 2
-            this.scene.add(boxmesh);
-            var torusgeometry = new THREE.TorusKnotGeometry(0.3, 0.1, 64, 16);
-            var torusmaterial = new THREE.MeshNormalMaterial();
-            var torusmesh = new THREE.Mesh(torusgeometry, torusmaterial);
-            torusmesh.position.y = 0.5
-            this.scene.add(torusmesh);
-
-            // var b1_basecolor = this.threeAssets['b1_basecolor']
-            // var b1_normal = this.threeAssets['b1_normal']
-            // var geo1=this.threeAssets['b1_man'];
-
-            // var b1geo = new THREE.BufferGeometry().fromGeometry(geo1);
-            // b1geo.addAttribute('bones',geo1.bones)
-            // b1geo.addAttribute('animations',geo1.animations)
-            // // b1geo.bones=geo1.bones;
-            // // b1geo.animations=geo1.animations
-            // console.log(this.threeAssets['b1_man'])
-            // var b1mat = new THREE.MeshStandardMaterial({
-            //     color: 13290186,
-            //     metalness: 0,
-            //     emissive: 6579300,
-            //     emissiveMap: b1_normal,
-            //     map: b1_normal,
-            //     normalMap: b1_basecolor,
-            //     roughness: .5,
-            //     skinning: true,
+            // var boxgeometry = new THREE.CubeGeometry(1, 1, 1);
+            // var boxmaterial = new THREE.MeshNormalMaterial({
+            //     transparent: true,
+            //     opacity: 0.5,
             //     side: THREE.DoubleSide
-            // })
-            // // b1_mat.skinning = true;
-            // // var b1_Mesh = new THREE.MeshStandardMaterial();
+            // });
+            // var boxmesh = new THREE.Mesh(boxgeometry, boxmaterial);
+            // boxmesh.position.y = boxgeometry.parameters.height / 2
+            // this.scene.add(boxmesh);
+            // var torusgeometry = new THREE.TorusKnotGeometry(0.3, 0.1, 64, 16);
+            // var torusmaterial = new THREE.MeshNormalMaterial();
+            // var torusmesh = new THREE.Mesh(torusgeometry, torusmaterial);
+            // torusmesh.position.y = 0.5
+            // this.scene.add(torusmesh);
+            // console.log('a')
 
-            // var b1_Mesh = new THREE.SkinnedMesh(geo1, b1mat);
-            // var mixer=new THREE.AnimationMixer(b1_Mesh); 
-            // console.log(b1geo.animations)
-            // var action =mixer.clipAction(b1geo.animations[0]);
-            // action.play();
+            var mixer = this.addGlb('test1');
+            // var testGltf = this.threeAssets['test1'];
+            // var testModel = this.threeAssets['test1'].scene;
+            // this.scene.add(testModel);
+            // var testSkeleton=new THREE.SkeletonHelper(testModel);
+            // testSkeleton.visible = true;
+            // this.scene.add(testSkeleton);
+            // var animations = testGltf.animations;
+            // var mixer = new THREE.AnimationMixer(testModel)
 
-            // this.scene.add(b1_Mesh)
+            // for (var i = 0; i < animations.length; i++) {
+            //     var action = mixer.clipAction(animations[i]);
+            //     action.play();
+            // }
+            this.allMixers.push(mixer)
 
+            // var gltf = this.threeAssets['BotSkinned'];
+            // var model = this.threeAssets['BotSkinned'].scene;
+            // this.scene.add(model)
+            // console.log('b')
+
+            // model.traverse(function(object) {
+            //     if (object.isMesh) object.castShadow = true;
+            // });
+
+            // var skeleton = new THREE.SkeletonHelper(model);
+            // skeleton.visible = true;
+            // this.scene.add(skeleton);
+
+            // model.position.x = 0;
+            // model.scale.copy(new THREE.Vector3(1, 1, 1))
+            // model.rotateX(-Math.PI / 2)
+            // model.rotateY(Math.PI)
+
+            // var animations = gltf.animations;
+            // var mixer = new THREE.AnimationMixer(model)
+
+            // for (var i = 0; i < animations.length; i++) {
+            //     var action = mixer.clipAction(animations[i]);
+            //     action.play();
+            // }
+
+            // this.allMixers.push(mixer)
+
+            // this.allMixers.push(mixer2)
             // this.onRenderFcts.push(function(delta) {
-            //     // boatMesh.rotation.x += Math.PI * delta
+            //     // console.log(that.allMixers)
+            //     // if(that.allMixers.length<1) return;
+            //     for (var i = 0; i < that.allMixers.length; i++) {
+            //         that.allMixers[i].update(delta)
+            //     }
             // })
-
 
         },
         loading() {
@@ -311,7 +373,8 @@ export default {
 
             manager.onLoad = function() {
                 console.log('Loading complete!')
-                that.addObj && that.addObj()
+                that.addObj();
+                // that.addObj && that.addObj()
             }
 
             manager.onProgress = function(url, itemsLoaded, itemsTotal) {
@@ -356,7 +419,9 @@ export default {
             gltfLoader.load(`${this.publicPath}model/Soldier.glb`, function(rs) {
                 that.threeAssets['Soldier'] = rs
             })
-
+            gltfLoader.load(`${this.publicPath}model/test1.gltf`, function(rs) {
+                that.threeAssets['test1'] = rs
+            })
         }
 
     }
