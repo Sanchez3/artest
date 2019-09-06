@@ -151,7 +151,7 @@ export default {
             // dirLight.position.set(10, 0, 0);
             dirLight.position.set(0, 5, 0)
 
-            var lightHelper = new THREE.DirectionalLightHelper(dirLight, 5);
+            var lightHelper = new THREE.DirectionalLightHelper(dirLight, 1);
 
             this.scene.add(lightHelper);
             this.scene.add(dirLight);
@@ -335,9 +335,9 @@ export default {
             this.scene.add(testModel);
             testModel.position.z = 1;
 
-            testModel.scale.copy(new THREE.Vector3(0.003, 0.003, 0.003))
+            // testModel.scale.copy(new THREE.Vector3(0.003, 0.003, 0.003))
             testModel.rotateX(-Math.PI / 2);
-            // testModel.rotateY(Math.PI );
+            testModel.rotateY(Math.PI );
 
             // var testSkeleton = new THREE.SkeletonHelper(testModel);
             // testSkeleton.visible = true;
