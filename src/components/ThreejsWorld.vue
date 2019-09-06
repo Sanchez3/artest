@@ -39,7 +39,7 @@ export default {
     },
     mounted() {
         this.init()
-        // this.initAR()
+        this.initAR()
         this.loading()
         // this.render()
         this.showStats()
@@ -135,7 +135,7 @@ export default {
             this.clock = new THREE.Clock();
 
             this.scene = new THREE.Scene()
-            this.scene.visible = false
+            // this.scene.visible = false
             this.scene.add(new THREE.GridHelper(1000, 100));
             this.scene.add(new THREE.AxesHelper(20));
 
@@ -186,7 +186,7 @@ export default {
             // this.scene.add(this.camera)
 
 
-            this.onRenderFcts.forEach(function(onRenderFct) {
+            this.onRenderFcts.push(function() {
                 that.renderer.render(that.scene, that.camera)
             })
 
@@ -339,9 +339,9 @@ export default {
             testModel.rotateX(-Math.PI / 2);
             // testModel.rotateY(Math.PI );
 
-            var testSkeleton = new THREE.SkeletonHelper(testModel);
-            testSkeleton.visible = true;
-            this.scene.add(testSkeleton);
+            // var testSkeleton = new THREE.SkeletonHelper(testModel);
+            // testSkeleton.visible = true;
+            // this.scene.add(testSkeleton);
             var animations = testGltf.animations;
             var mixer = new THREE.AnimationMixer(testModel)
 
@@ -351,7 +351,7 @@ export default {
             }
             this.allMixers.push(mixer)
 
-             that.initAR();
+             // that.initAR();
 
             // var gltf = this.threeAssets['BotSkinned'];
             // var model = this.threeAssets['BotSkinned'].scene;
