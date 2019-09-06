@@ -240,7 +240,7 @@ export default {
             model.position.z = 1;
 
             model.scale.copy(new THREE.Vector3(0.003, 0.003, 0.003))
-            model.rotateX(-Math.PI / 2)
+            model.rotateX(-Math.PI / 2);
             // model.rotateY(Math.PI)
 
             var animations = gltf.animations;
