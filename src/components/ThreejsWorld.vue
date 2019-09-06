@@ -155,7 +155,7 @@ export default {
 
             this.scene.add(lightHelper);
             this.scene.add(dirLight);
-             
+
 
 
 
@@ -186,6 +186,10 @@ export default {
             // this.scene.add(this.camera)
 
 
+            this.onRenderFcts.forEach(function(onRenderFct) {
+                that.renderer.render(that.scene, that.camera)
+            })
+
             // window.addEventListener('resize', this.onWindowResize, false)
 
             var lastTimeMsec = null;
@@ -196,7 +200,7 @@ export default {
                 var deltaMsec = Math.min(200, nowMsec - lastTimeMsec)
                 lastTimeMsec = nowMsec
                 // call each update function
-                that.renderer && that.renderer.render(that.scene, that.camera)
+                // that.renderer && that.renderer.render(that.scene, that.camera)
 
                 that.onRenderFcts.forEach(function(onRenderFct) {
                     onRenderFct(deltaMsec / 1000, nowMsec / 1000)
@@ -333,21 +337,21 @@ export default {
 
             testModel.scale.copy(new THREE.Vector3(0.003, 0.003, 0.003))
             testModel.rotateX(-Math.PI / 2);
-
-            that.initAR();
             // testModel.rotateY(Math.PI );
 
-            // var testSkeleton = new THREE.SkeletonHelper(testModel);
-            // testSkeleton.visible = true;
-            // this.scene.add(testSkeleton);
-            // var animations = testGltf.animations;
-            // var mixer = new THREE.AnimationMixer(testModel)
+            var testSkeleton = new THREE.SkeletonHelper(testModel);
+            testSkeleton.visible = true;
+            this.scene.add(testSkeleton);
+            var animations = testGltf.animations;
+            var mixer = new THREE.AnimationMixer(testModel)
 
-            // for (var i = 0; i < animations.length; i++) {
-            //     var action = mixer.clipAction(animations[i]);
-            //     action.play();
-            // }
-            // this.allMixers.push(mixer)
+            for (var i = 0; i < animations.length; i++) {
+                var action = mixer.clipAction(animations[i]);
+                action.play();
+            }
+            this.allMixers.push(mixer)
+
+             that.initAR();
 
             // var gltf = this.threeAssets['BotSkinned'];
             // var model = this.threeAssets['BotSkinned'].scene;
@@ -378,16 +382,16 @@ export default {
             // this.allMixers.push(mixer)
 
             // this.allMixers.push(mixer2)
-            // this.onRenderFcts.push(function(delta) {
-            //     // console.log(that.allMixers)
-            //     // if(that.allMixers.length<1) return;
-            //     // if (!that.scene.visible) return
-            //     for (var i = 0; i < that.allMixers.length; i++) {
-            //         (function(k) {
-            //             that.allMixers[k].update(delta)
-            //         })(i)
-            //     }
-            // })
+            this.onRenderFcts.push(function(delta) {
+                // console.log(that.allMixers)
+                // if(that.allMixers.length<1) return;
+                // if (!that.scene.visible) return
+                for (var i = 0; i < that.allMixers.length; i++) {
+                    (function(k) {
+                        that.allMixers[k].update(delta)
+                    })(i)
+                }
+            })
 
         },
         loading() {
