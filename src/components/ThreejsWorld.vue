@@ -196,7 +196,7 @@ export default {
                 var deltaMsec = Math.min(200, nowMsec - lastTimeMsec)
                 lastTimeMsec = nowMsec
                 // call each update function
-                that.renderer.render(that.scene, that.camera)
+                that.renderer&&that.renderer.render(that.scene, that.camera)
 
                 that.onRenderFcts.forEach(function(onRenderFct) {
                     onRenderFct(deltaMsec / 1000, nowMsec / 1000)
