@@ -376,16 +376,16 @@ export default {
             // this.allMixers.push(mixer)
 
             // this.allMixers.push(mixer2)
-            this.onRenderFcts.push(function(delta) {
-                // console.log(that.allMixers)
-                // if(that.allMixers.length<1) return;
-                // if (!that.scene.visible) return
-                for (var i = 0; i < that.allMixers.length; i++) {
-                    (function(k) {
-                        that.allMixers[k].update(delta)
-                    })(i)
-                }
-            })
+            // this.onRenderFcts.push(function(delta) {
+            //     // console.log(that.allMixers)
+            //     // if(that.allMixers.length<1) return;
+            //     // if (!that.scene.visible) return
+            //     for (var i = 0; i < that.allMixers.length; i++) {
+            //         (function(k) {
+            //             that.allMixers[k].update(delta)
+            //         })(i)
+            //     }
+            // })
 
         },
         loading() {
