@@ -186,7 +186,7 @@ export default {
             // this.scene.add(this.camera)
 
 
-            window.addEventListener('resize', this.onWindowResize, false)
+            // window.addEventListener('resize', this.onWindowResize, false)
 
             var lastTimeMsec = null;
             var that = this;
