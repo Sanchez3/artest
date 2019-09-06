@@ -8,7 +8,7 @@
 <script>
 // import * as THREE from 'three'
 // window.THREE = THREE || {}
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 // import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 // var OrbitControls = require('three-orbit-controls')(THREE)
 // var LegacyJSONLoader = require('../assets/js/LegacyJSONLoader.js')(THREE)
@@ -325,20 +325,20 @@ export default {
             // this.scene.add(torusmesh);
             // console.log('a')
 
-            var mixer = this.addGlb('test1');
-            // var testGltf = this.threeAssets['test1'];
-            // var testModel = this.threeAssets['test1'].scene;
-            // this.scene.add(testModel);
-            // var testSkeleton=new THREE.SkeletonHelper(testModel);
-            // testSkeleton.visible = true;
-            // this.scene.add(testSkeleton);
-            // var animations = testGltf.animations;
-            // var mixer = new THREE.AnimationMixer(testModel)
+            // var mixer = this.addGlb('test1');
+            var testGltf = this.threeAssets['test1'];
+            var testModel = this.threeAssets['test1'].scene;
+            this.scene.add(testModel);
+            var testSkeleton = new THREE.SkeletonHelper(testModel);
+            testSkeleton.visible = true;
+            this.scene.add(testSkeleton);
+            var animations = testGltf.animations;
+            var mixer = new THREE.AnimationMixer(testModel)
 
-            // for (var i = 0; i < animations.length; i++) {
-            //     var action = mixer.clipAction(animations[i]);
-            //     action.play();
-            // }
+            for (var i = 0; i < animations.length; i++) {
+                var action = mixer.clipAction(animations[i]);
+                action.play();
+            }
             this.allMixers.push(mixer)
 
             // var gltf = this.threeAssets['BotSkinned'];
@@ -370,14 +370,16 @@ export default {
             // this.allMixers.push(mixer)
 
             // this.allMixers.push(mixer2)
-            // this.onRenderFcts.push(function(delta) {
-            //     // console.log(that.allMixers)
-            //     // if(that.allMixers.length<1) return;
-            //     if (!that.scene.visible) return
-            //     for (var i = 0; i < that.allMixers.length; i++) {
-            //         that.allMixers[i].update(delta)
-            //     }
-            // })
+            this.onRenderFcts.push(function(delta) {
+                // console.log(that.allMixers)
+                // if(that.allMixers.length<1) return;
+                // if (!that.scene.visible) return
+                for (var i = 0; i < that.allMixers.length; i++) {
+                    (function(k) {
+                        that.allMixers[k].update(delta)
+                    })(i)
+                }
+            })
 
         },
         loading() {
@@ -417,23 +419,22 @@ export default {
             textureLoader.load(`${this.publicPath}model/color.jpg`, function(rs) {
                 that.threeAssets['color'] = rs
             })
-
             var gltfLoader = new GLTFLoader(manager);
-            gltfLoader.load(`${this.publicPath}model/Monster/Monster.gltf`, function(rs) {
-                that.threeAssets['Monster'] = rs
-            })
-            gltfLoader.load(`${this.publicPath}model/CesiumMan/CesiumMan.gltf`, function(rs) {
-                that.threeAssets['CesiumMan'] = rs
-            })
-            gltfLoader.load(`${this.publicPath}model/DamagedHelmet/DamagedHelmet.gltf`, function(rs) {
-                that.threeAssets['DamagedHelmet'] = rs
-            })
-            gltfLoader.load(`${this.publicPath}model/CesiumMilkTruck/CesiumMilkTruck.gltf`, function(rs) {
-                that.threeAssets['CesiumMilkTruck'] = rs
-            })
-            gltfLoader.load(`${this.publicPath}model/BotSkinned/Bot_Skinned.gltf`, function(rs) {
-                that.threeAssets['BotSkinned'] = rs
-            })
+            // gltfLoader.load(`${this.publicPath}model/Monster/Monster.gltf`, function(rs) {
+            //     that.threeAssets['Monster'] = rs
+            // })
+            // gltfLoader.load(`${this.publicPath}model/CesiumMan/CesiumMan.gltf`, function(rs) {
+            //     that.threeAssets['CesiumMan'] = rs
+            // })
+            // gltfLoader.load(`${this.publicPath}model/DamagedHelmet/DamagedHelmet.gltf`, function(rs) {
+            //     that.threeAssets['DamagedHelmet'] = rs
+            // })
+            // gltfLoader.load(`${this.publicPath}model/CesiumMilkTruck/CesiumMilkTruck.gltf`, function(rs) {
+            //     that.threeAssets['CesiumMilkTruck'] = rs
+            // })
+            // gltfLoader.load(`${this.publicPath}model/BotSkinned/Bot_Skinned.gltf`, function(rs) {
+            //     that.threeAssets['BotSkinned'] = rs
+            // })
             gltfLoader.load(`${this.publicPath}model/Soldier.glb`, function(rs) {
                 that.threeAssets['Soldier'] = rs
             })
