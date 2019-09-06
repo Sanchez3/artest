@@ -329,6 +329,11 @@ export default {
             var testGltf = this.threeAssets['test1'];
             var testModel = this.threeAssets['test1'].scene;
             this.scene.add(testModel);
+            testModel.position.z = 1;
+
+            testModel.scale.copy(new THREE.Vector3(0.003, 0.003, 0.003))
+            testModel.rotateX(-Math.PI / 2);
+            
             var testSkeleton = new THREE.SkeletonHelper(testModel);
             testSkeleton.visible = true;
             this.scene.add(testSkeleton);
