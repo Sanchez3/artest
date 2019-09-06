@@ -113,16 +113,16 @@ export default {
                 // }
             })
 
-            this.onRenderFcts.push(function(delta) {
-                if (arToolkitSource.ready === false) return
-                // arToolkitContext.update(arToolkitSource.domElement)
-                // update scene.visible if the marker is seen
-                if(!that.scene.visible) return;
-                // that.scene.visible = that.camera.visible
-                for (var i = 0; i < that.allMixers.length; i++) {
-                    that.allMixers[i].update(delta)
-                }
-            })
+            // this.onRenderFcts.push(function(delta) {
+            //     if (arToolkitSource.ready === false) return
+            //     // arToolkitContext.update(arToolkitSource.domElement)
+            //     // update scene.visible if the marker is seen
+            //     if(!that.scene.visible) return;
+            //     // that.scene.visible = that.camera.visible
+            //     for (var i = 0; i < that.allMixers.length; i++) {
+            //         that.allMixers[i].update(delta)
+            //     }
+            // })
 
             ////////////////////////////////////////////////////////////////////////////////
             //          Create a ArMarkerControls
@@ -137,7 +137,7 @@ export default {
                 changeMatrixMode: 'cameraTransformMatrix'
             })
             // as we do changeMatrixMode: 'cameraTransformMatrix', start with invisible scene
-            // that.scene.visible = false
+            that.scene.visible = false
 
         },
         init() {
@@ -160,7 +160,7 @@ export default {
 
             var dirLight = new THREE.DirectionalLight(0xffffff, 5);
             // dirLight.position.set(10, 0, 0);
-            dirLight.position.set(  0, 5, 0)
+            dirLight.position.set(0, 5, 0)
 
             var lightHelper = new THREE.DirectionalLightHelper(dirLight, 5);
 
@@ -367,13 +367,14 @@ export default {
             // this.allMixers.push(mixer)
 
             // this.allMixers.push(mixer2)
-            // this.onRenderFcts.push(function(delta) {
-            //     // console.log(that.allMixers)
-            //     // if(that.allMixers.length<1) return;
-            //     for (var i = 0; i < that.allMixers.length; i++) {
-            //         that.allMixers[i].update(delta)
-            //     }
-            // })
+            this.onRenderFcts.push(function(delta) {
+                // console.log(that.allMixers)
+                // if(that.allMixers.length<1) return;
+                if (!that.scene.visible) return
+                for (var i = 0; i < that.allMixers.length; i++) {
+                    that.allMixers[i].update(delta)
+                }
+            })
 
         },
         loading() {
