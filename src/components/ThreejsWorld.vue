@@ -39,7 +39,7 @@ export default {
     },
     mounted() {
         this.init()
-        this.initAR()
+        // this.initAR()
         this.loading()
         // this.render()
         this.showStats()
@@ -351,7 +351,7 @@ export default {
             }
             this.allMixers.push(mixer)
 
-             // that.initAR();
+             that.initAR();
 
             // var gltf = this.threeAssets['BotSkinned'];
             // var model = this.threeAssets['BotSkinned'].scene;
@@ -385,7 +385,7 @@ export default {
             this.onRenderFcts.push(function(delta) {
                 // console.log(that.allMixers)
                 // if(that.allMixers.length<1) return;
-                // if (!that.scene.visible) return
+                if (!that.scene.visible) return
                 for (var i = 0; i < that.allMixers.length; i++) {
                     (function(k) {
                         that.allMixers[k].update(delta)
