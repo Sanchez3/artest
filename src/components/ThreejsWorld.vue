@@ -48,7 +48,6 @@ export default {
         })
     },
     methods: {
-
         initAR() {
             var that = this;
             var arToolkitSource = new THREEx.ArToolkitSource({
@@ -61,7 +60,6 @@ export default {
                 // sourceType : 'video',
                 // sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/videos/headtracking.mp4',
             })
-
             arToolkitSource.init(function onReady() {
                 onResize()
             })
@@ -76,7 +74,6 @@ export default {
                     arToolkitSource.copyElementSizeTo(arToolkitContext.arController.canvas)
                 }
             }
-
             // create atToolkitContext
             var arToolkitContext = new THREEx.ArToolkitContext({
                 cameraParametersUrl: THREEx.ArToolkitContext.baseURL + '../data/data/camera_para.dat',
@@ -89,32 +86,35 @@ export default {
                 that.camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
             })
             // update artoolkit on every frame
+            var firstT = true;
             this.onRenderFcts.push(function(delta) {
+                // console.log(arToolkitSource.ready)
                 if (arToolkitSource.ready === false) return
                 arToolkitContext.update(arToolkitSource.domElement)
                 // update scene.visible if the marker is seen
+                // console.log(that.camera.visible)
                 that.scene.visible = that.camera.visible
+                // firstT=false;
             })
-
             ////////////////////////////////////////////////////////////////////////////////
             //          Create a ArMarkerControls
             ////////////////////////////////////////////////////////////////////////////////
             // init controls for camera
             var markerControls = new THREEx.ArMarkerControls(arToolkitContext, that.camera, {
                 type: 'pattern',
-                // patternUrl: `${this.publicPath}pattern/pattern-7.patt`,
-                patternUrl: THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro',
+                patternUrl: `${this.publicPath}pattern/pattern-3.patt`,
+                // patternUrl: THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro',
                 // patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.kanji',
                 // as we controls the camera, set changeMatrixMode: 'cameraTransformMatrix'
                 changeMatrixMode: 'cameraTransformMatrix'
             })
             // as we do changeMatrixMode: 'cameraTransformMatrix', start with invisible scene
-            that.scene.visible = false
+            // that.scene.visible = false
         },
         init() {
-            function animate() {
+            function animate(nowMsec) {
                 requestAnimationFrame(this._animate);
-                this.render();
+                this.render(nowMsec);
             }
             var wWidth = window.innerWidth
             var wHeight = window.innerHeight
@@ -123,6 +123,7 @@ export default {
             this.scene = new THREE.Scene()
             this.scene.add(new THREE.GridHelper(1000, 100));
             this.scene.add(new THREE.AxesHelper(20));
+            this.scene.visible = false
 
 
             this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
@@ -157,7 +158,7 @@ export default {
             const light1 = new THREE.AmbientLight(0xffffff, 0.5);
             this.camera.add(light1);
 
-            var light2 = new THREE.DirectionalLight(0xffffff, 1.5 * Math.PI );
+            var light2 = new THREE.DirectionalLight(0xffffff, 1.5 * Math.PI);
             light2.position.set(0.5, 0, 0.866); // ~60º
             this.camera.add(light2);
 
@@ -170,13 +171,13 @@ export default {
             this.camera.updateProjectionMatrix()
             this.renderer.setSize(window.innerWidth, window.innerHeight)
         },
-        render() {
-            var delta = this.clock.getDelta();
-            // var lastTimeMsec = null;
+        render(nowMsec) {
+            // var delta = this.clock.getDelta();
+            var lastTimeMsec = null;
             // requestAnimationFrame(animate);
-            // lastTimeMsec = lastTimeMsec || nowMsec - 1000 / 60
-            // var deltaMsec = Math.min(200, nowMsec - lastTimeMsec)
-            // lastTimeMsec = nowMsec
+            lastTimeMsec = lastTimeMsec || nowMsec - 1000 / 60
+            var deltaMsec = Math.min(200, nowMsec - lastTimeMsec)
+            lastTimeMsec = nowMsec
             // call each update function
 
             // for (var i = 0; i < that.allMixers.length; i++) {
@@ -187,7 +188,7 @@ export default {
             // }
             // this.mixer && this.mixer.update(delta)
             this.onRenderFcts.forEach(function(onRenderFct) {
-                onRenderFct(delta)
+                onRenderFct(deltaMsec / 1000)
             })
             this.renderer.render(this.scene, this.camera)
             this.stats.update();
