@@ -1,32 +1,33 @@
 <template>
     <div class="hello">
         <h1>{{ msg }}</h1>
+        <h2>{{`${per}%`}}</h2>
         <!-- <video id="video" autoplay></video> -->
         <div id="canvas-element"></div>
     </div>
 </template>
 <script>
-// import * as THREE from 'three'
-// window.THREE = THREE || {}
+import * as THREE from 'three'
+import { ARjs, THREEx } from 'ar.js'
+// require('ar.js') ;
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
-// var OrbitControls = require('three-orbit-controls')(THREE)
-// var LegacyJSONLoader = require('../assets/js/LegacyJSONLoader.js')(THREE)
-// var LegacyJSONLoader = require('three-legacyjsonloader')(THREE);
-// import GLTFLoader from 'three-gltf-loader';
 import Stats from 'stats.js'
 // THREEx.ArToolkitContext.baseURL = '../'
 // require('../assets/js/ar.min.js')
-// require('ar.js/three.js/build/ar.min.js')
-// LegacyJSONLoader(THREE);
+
 export default {
     name: 'ThreejsWorld',
     props: {
         msg: String
     },
+    created() {
+        // console.log(ARjs.isEmpty() ? 'Lodash is available here!' : 'Uh oh..');
+    },
     data() {
         return {
+            per: 0,
             scene: '',
             renderer: '',
             light: '',
@@ -43,32 +44,11 @@ export default {
         var that = this;
         this.$nextTick(function() {
             that.init()
-            // this.initAR()
-
-            // this.render()
-            that.showStats()
+            that.initAR();
         })
     },
     methods: {
-        showStats() {
-            var stats = new Stats()
-            stats.showPanel(0) // 0: fps, 1: ms, 2: mb, 3+: custom
-            // var fs = document.createElement('div')
-            // fs.style.position = 'absolute'
-            // fs.style.left = 0
-            // fs.style.top = 0
-            // fs.style.zIndex = 999
-            // fs.appendChild(stats.domElement)
-            document.body.appendChild(stats.domElement)
 
-            function animate() {
-                stats.begin()
-                // monitored code goes here
-                stats.end()
-                requestAnimationFrame(animate)
-            }
-            requestAnimationFrame(animate)
-        },
         initAR() {
             var that = this;
             var arToolkitSource = new THREEx.ArToolkitSource({
@@ -122,8 +102,8 @@ export default {
             // init controls for camera
             var markerControls = new THREEx.ArMarkerControls(arToolkitContext, that.camera, {
                 type: 'pattern',
-                patternUrl: `${this.publicPath}pattern/pattern-3.patt`,
-                // patternUrl: THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro',
+                // patternUrl: `${this.publicPath}pattern/pattern-7.patt`,
+                patternUrl: THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro',
                 // patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.kanji',
                 // as we controls the camera, set changeMatrixMode: 'cameraTransformMatrix'
                 changeMatrixMode: 'cameraTransformMatrix'
@@ -132,62 +112,57 @@ export default {
             that.scene.visible = false
         },
         init() {
+            function animate() {
+                requestAnimationFrame(this._animate);
+                this.render();
+            }
             var wWidth = window.innerWidth
             var wHeight = window.innerHeight
             this.clock = new THREE.Clock();
 
             this.scene = new THREE.Scene()
-            // this.scene.visible = false
             this.scene.add(new THREE.GridHelper(1000, 100));
             this.scene.add(new THREE.AxesHelper(20));
 
-            var pointLight = new THREE.PointLight(0xffffff, 1, 100);
-            pointLight.position.set(0, 4, 0); // default; light shining from top
-            pointLight.castShadow = true;
-            this.scene.add(pointLight);
-            var sphereSize = 1;
-            var pointLightHelper = new THREE.PointLightHelper(pointLight, sphereSize);
-            this.scene.add(pointLightHelper);
-
-            var dirLight = new THREE.DirectionalLight(0xffffff, 5);
-            // dirLight.position.set(10, 0, 0);
-            dirLight.position.set(0, 5, 0)
-
-            var lightHelper = new THREE.DirectionalLightHelper(dirLight, 1);
-
-            this.scene.add(lightHelper);
-            this.scene.add(dirLight);
-
-
-
 
             this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
+            this.renderer.physicallyCorrectLights = true;
             this.renderer.setPixelRatio(window.devicePixelRatio)
             this.renderer.setSize(wWidth, wHeight)
             document.getElementById('canvas-element').appendChild(this.renderer.domElement)
 
+            this.stats = new Stats();
+            document.getElementById('canvas-element').appendChild(this.stats.dom);
             // ar camera
-            // this.camera = new THREE.Camera();
-            // this.scene.add(this.camera);
+            this.camera = new THREE.Camera();
+            this.scene.add(this.camera);
 
-            this.camera = new THREE.PerspectiveCamera(45, wWidth / wHeight, 1, 1000)
-            this.camera.position.set(10, 0, 10)
-            this.camera.lookAt(0, 0, 0)
+            // this.camera = new THREE.PerspectiveCamera(45, wWidth / wHeight, 1, 1000)
+            // this.camera.position.set(0, 10, 0)
+            // // this.camera.lookAt(0, 0, 0)
+            // var orbitControls = new OrbitControls(this.camera, this.renderer.domElement)
+            // orbitControls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+            // orbitControls.dampingFactor = 0.05;
+            // orbitControls.screenSpacePanning = false;
+            // orbitControls.minDistance = 10;
+            // orbitControls.maxDistance = 500;
+            // orbitControls.maxPolarAngle = Math.PI / 2;
+            // this.scene.add(this.camera)
+            // this.onRenderFcts.push(function() {
+            //     orbitControls.update();
+            // })
 
-            var orbitControls = new OrbitControls(this.camera, this.renderer.domElement)
-            orbitControls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
-            orbitControls.dampingFactor = 0.05;
-            orbitControls.screenSpacePanning = false;
-            orbitControls.minDistance = 10;
-            orbitControls.maxDistance = 500;
-            orbitControls.maxPolarAngle = Math.PI / 2;
-            this.onRenderFcts.push(function() {
-                orbitControls.update();
-            })
+            var hemiLight = new THREE.HemisphereLight();
+            this.scene.add(hemiLight);
+            const light1 = new THREE.AmbientLight(0xffffff, 0.5);
+            this.camera.add(light1);
 
-            this.scene.add(this.camera)
+            var light2 = new THREE.DirectionalLight(0xffffff, 1.5 * Math.PI );
+            light2.position.set(0.5, 0, 0.866); // ~60º
+            this.camera.add(light2);
 
             this.loading();
+            this._animate = animate.bind(this);
 
         },
         onWindowResize() {
@@ -195,31 +170,28 @@ export default {
             this.camera.updateProjectionMatrix()
             this.renderer.setSize(window.innerWidth, window.innerHeight)
         },
-        mrender() {
-            var that = this;
-            var lastTimeMsec = null;
+        render() {
+            var delta = this.clock.getDelta();
+            // var lastTimeMsec = null;
+            // requestAnimationFrame(animate);
+            // lastTimeMsec = lastTimeMsec || nowMsec - 1000 / 60
+            // var deltaMsec = Math.min(200, nowMsec - lastTimeMsec)
+            // lastTimeMsec = nowMsec
+            // call each update function
 
-            requestAnimationFrame(function animate(nowMsec) {
-                // var mixerUpdateDelta = that.clock.getDelta();
-                requestAnimationFrame(animate);
-                lastTimeMsec = lastTimeMsec || nowMsec - 1000 / 60
-                var deltaMsec = Math.min(200, nowMsec - lastTimeMsec)
-                lastTimeMsec = nowMsec
-                // call each update function
-
-                // for (var i = 0; i < that.allMixers.length; i++) {
-                //     (function(j) {
-                //         var m = that.allMixers[j]
-                //         if (m) m.update(deltaMsec)
-                //     })(i)
-                // }
-                that.mixer && that.mixer.update(deltaMsec)
-                // that.onRenderFcts.forEach(function(onRenderFct) {
-                //     onRenderFct(mixerUpdateDelta)
-                // })
-
-                that.renderer.render(that.scene, that.camera)
+            // for (var i = 0; i < that.allMixers.length; i++) {
+            //     (function(j) {
+            //         var m = that.allMixers[j]
+            //         if (m) m.update(deltaMsec)
+            //     })(i)
+            // }
+            // this.mixer && this.mixer.update(delta)
+            this.onRenderFcts.forEach(function(onRenderFct) {
+                onRenderFct(delta)
             })
+            this.renderer.render(this.scene, this.camera)
+            this.stats.update();
+
         },
         addGlb(name) {
             var that = this;
@@ -227,19 +199,27 @@ export default {
             console.log(gltf)
             var model = this.threeAssets[name].scene;
             this.scene.add(model)
-
+            var encoding = THREE.sRGBEncoding;
             model.traverse(function(object) {
-                if (object.isMesh) object.castShadow = true;
+                if (object.isMesh) {
+                    object.castShadow = true;
+                    var material = object.material;
+                    if (material.map) material.map.encoding = encoding;
+                    if (material.emissiveMap) material.emissiveMap.encoding = encoding;
+                    if (material.map || material.emissiveMap) material.needsUpdate = true;
+                }
+
             });
             // var skeleton = new THREE.SkeletonHelper(model);
             // skeleton.visible = true;
             // this.scene.add(skeleton);
 
-            model.position.z = 1;
+            model.position.z = 2;
+            model.position.y = -2;
 
-            // model.scale.copy(new THREE.Vector3(0.003, 0.003, 0.003))
+            model.scale.copy(new THREE.Vector3(0.005, 0.005, 0.005))
             model.rotateX(-Math.PI / 2);
-            model.rotateY(Math.PI)
+            // model.rotateY(Math.PI)
 
             var animations = gltf.animations;
             var mixer = new THREE.AnimationMixer(model)
@@ -250,9 +230,9 @@ export default {
             }
             // var action = mixer.clipAction(animations[3]);
             // action.play();
-            return mixer;
+            // return mixer;
 
-            // this.allMixers.push(mixer)
+            this.allMixers.push(mixer)
 
 
         },
@@ -265,31 +245,39 @@ export default {
             // floorMesh.rotation.x = -Math.PI / 2;
             // floorMesh.receiveShadow = true;
             // this.scene.add(floorMesh);
+            this.addGlb('test1')
 
-            var testGltf = that.threeAssets['Soldier'];
-            var testModel = testGltf.scene;
-            this.scene.add(testModel);
-            // testModel.position.z = 1;
+            // var testGltf = that.threeAssets['Soldier'];
+            // var testModel = testGltf.scene;
+            // this.scene.add(testModel);
+            // testModel.position.y = 1;
 
-            // testModel.scale.copy(new THREE.Vector3(0.003, 0.003, 0.003))
-            // testModel.rotateX(-Math.PI / 2);
-            // testModel.rotateY(Math.PI);
+            // // testModel.scale.copy(new THREE.Vector3(0.003, 0.003, 0.003))
+            // // testModel.rotateX(-Math.PI / 2);
+            // // testModel.rotateY(Math.PI);
 
-            var testSkeleton = new THREE.SkeletonHelper(testModel);
-            testSkeleton.visible = true;
-            this.scene.add(testSkeleton);
-            var animations = testGltf.animations;
-            that.mixer = new THREE.AnimationMixer(testModel)
+            // var testSkeleton = new THREE.SkeletonHelper(testModel);
+            // testSkeleton.visible = true;
+            // this.scene.add(testSkeleton);
+            // var animations = testGltf.animations;
+            // var mixer = new THREE.AnimationMixer(testModel)
 
-            for (var i = 0; i < animations.length; i++) {
-                var action = that.mixer.clipAction(animations[i]);
-                action.play();
-            }
+            // for (var i = 0; i < animations.length; i++) {
+            //     var action = mixer.clipAction(animations[i]);
+            //     action.play();
+            // }
             // var action = that.mixer.clipAction(animations[0]);
             // action.play();
             // var mixer = this.addGlb('test1');
             // this.allMixers.push(mixer);
-            that.mrender()
+            this.onRenderFcts.push(function(delta) {
+                if (!that.scene.visible) return
+                for (var i = 0; i < that.allMixers.length; i++) {
+                    var m = that.allMixers[i]
+                    m.update(delta)
+                }
+            })
+            this._animate()
 
         },
         loading() {
@@ -311,6 +299,7 @@ export default {
                 // console.log('Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.')
                 var per = parseInt(itemsLoaded / itemsTotal * 100)
                 console.log(per)
+                that.per = per;
                 // $("#percentage").html(per + ' %')
             }
 
@@ -345,13 +334,12 @@ export default {
                 // that.scene.add(rs.scene)
                 // that.mrender();
             })
-            // gltfLoader.load(`${this.publicPath}model/test1.gltf`, function(rs) {
-            //     that.threeAssets['test1'] = rs
-            // })
+            gltfLoader.load(`${this.publicPath}model/test1.glb`, function(rs) {
+                that.threeAssets['test1'] = rs
+            })
         }
 
     }
-
 }
 </script>
 <!-- Add "scoped" attribute to limit CSS to this component only -->
