@@ -8,12 +8,13 @@
 <script>
 // import * as THREE from 'three'
 // window.THREE = THREE || {}
-// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-// import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 // var OrbitControls = require('three-orbit-controls')(THREE)
 // var LegacyJSONLoader = require('../assets/js/LegacyJSONLoader.js')(THREE)
-var LegacyJSONLoader = require('three-legacyjsonloader')(THREE);
-import GLTFLoader from 'three-gltf-loader';
+// var LegacyJSONLoader = require('three-legacyjsonloader')(THREE);
+// import GLTFLoader from 'three-gltf-loader';
 import Stats from 'stats.js'
 // THREEx.ArToolkitContext.baseURL = '../'
 // require('../assets/js/ar.min.js')
@@ -34,16 +35,19 @@ export default {
             publicPath: process.env.BASE_URL,
             threeAssets: [],
             onRenderFcts: [],
-            allMixers: []
+            allMixers: [],
+            mixer: '',
         }
     },
     mounted() {
-        this.init()
-        // this.initAR()
-        this.loading()
-        // this.render()
-        this.showStats()
+        var that = this;
+        this.$nextTick(function() {
+            that.init()
+            // this.initAR()
 
+            // this.render()
+            that.showStats()
+        })
     },
     methods: {
         showStats() {
@@ -64,7 +68,6 @@ export default {
                 requestAnimationFrame(animate)
             }
             requestAnimationFrame(animate)
-
         },
         initAR() {
             var that = this;
@@ -127,7 +130,6 @@ export default {
             })
             // as we do changeMatrixMode: 'cameraTransformMatrix', start with invisible scene
             that.scene.visible = false
-
         },
         init() {
             var wWidth = window.innerWidth
@@ -165,47 +167,27 @@ export default {
             document.getElementById('canvas-element').appendChild(this.renderer.domElement)
 
             // ar camera
-            this.camera = new THREE.Camera();
-            this.scene.add(this.camera);
+            // this.camera = new THREE.Camera();
+            // this.scene.add(this.camera);
 
-            // this.camera = new THREE.PerspectiveCamera(45, wWidth / wHeight, 1, 1000)
-            // this.camera.position.set(10, 10, 1)
-            // this.camera.lookAt(0,0,0)
+            this.camera = new THREE.PerspectiveCamera(45, wWidth / wHeight, 1, 1000)
+            this.camera.position.set(10, 0, 10)
+            this.camera.lookAt(0, 0, 0)
 
-            // var orbitControls = new OrbitControls(this.camera, this.renderer.domElement)
-            // orbitControls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
-            // orbitControls.dampingFactor = 0.05;
-            // orbitControls.screenSpacePanning = false;
-            // orbitControls.minDistance = 10;
-            // orbitControls.maxDistance = 500;
-            // orbitControls.maxPolarAngle = Math.PI / 2;
-            // this.onRenderFcts.push(function() {
-            //     orbitControls.update();
-            // })
-
-            // this.scene.add(this.camera)
-
-
+            var orbitControls = new OrbitControls(this.camera, this.renderer.domElement)
+            orbitControls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+            orbitControls.dampingFactor = 0.05;
+            orbitControls.screenSpacePanning = false;
+            orbitControls.minDistance = 10;
+            orbitControls.maxDistance = 500;
+            orbitControls.maxPolarAngle = Math.PI / 2;
             this.onRenderFcts.push(function() {
-                that.renderer.render(that.scene, that.camera)
+                orbitControls.update();
             })
 
-            // window.addEventListener('resize', this.onWindowResize, false)
+            this.scene.add(this.camera)
 
-            var lastTimeMsec = null;
-            var that = this;
-            requestAnimationFrame(function animate(nowMsec) {
-                requestAnimationFrame(animate);
-                lastTimeMsec = lastTimeMsec || nowMsec - 1000 / 60
-                var deltaMsec = Math.min(200, nowMsec - lastTimeMsec)
-                lastTimeMsec = nowMsec
-                // call each update function
-                // that.renderer && that.renderer.render(that.scene, that.camera)
-
-                that.onRenderFcts.forEach(function(onRenderFct) {
-                    onRenderFct(deltaMsec / 1000, nowMsec / 1000)
-                })
-            })
+            this.loading();
 
         },
         onWindowResize() {
@@ -213,27 +195,36 @@ export default {
             this.camera.updateProjectionMatrix()
             this.renderer.setSize(window.innerWidth, window.innerHeight)
         },
-        render() {
+        mrender() {
             var that = this;
             var lastTimeMsec = null;
-            this.onRenderFcts.push(function() {
-                that.renderer.render(that.scene, that.camera)
-            })
+
             requestAnimationFrame(function animate(nowMsec) {
+                // var mixerUpdateDelta = that.clock.getDelta();
                 requestAnimationFrame(animate);
                 lastTimeMsec = lastTimeMsec || nowMsec - 1000 / 60
                 var deltaMsec = Math.min(200, nowMsec - lastTimeMsec)
                 lastTimeMsec = nowMsec
                 // call each update function
 
-                that.onRenderFcts.forEach(function(onRenderFct) {
-                    onRenderFct(deltaMsec / 1000, nowMsec / 1000)
-                })
+                // for (var i = 0; i < that.allMixers.length; i++) {
+                //     (function(j) {
+                //         var m = that.allMixers[j]
+                //         if (m) m.update(deltaMsec)
+                //     })(i)
+                // }
+                that.mixer && that.mixer.update(deltaMsec)
+                // that.onRenderFcts.forEach(function(onRenderFct) {
+                //     onRenderFct(mixerUpdateDelta)
+                // })
+
+                that.renderer.render(that.scene, that.camera)
             })
         },
         addGlb(name) {
             var that = this;
             var gltf = this.threeAssets[name];
+            console.log(gltf)
             var model = this.threeAssets[name].scene;
             this.scene.add(model)
 
@@ -267,131 +258,38 @@ export default {
         },
         addObj() {
             var that = this;
+            // var floorGeometry = new THREE.PlaneGeometry(20, 20);
+            // var floorMaterial = new THREE.ShadowMaterial();
+            // // floorMaterial.opacity = 0.3;
+            // var floorMesh = new THREE.Mesh(floorGeometry, floorMaterial);
+            // floorMesh.rotation.x = -Math.PI / 2;
+            // floorMesh.receiveShadow = true;
+            // this.scene.add(floorMesh);
 
-            var floorGeometry = new THREE.PlaneGeometry(20, 20);
-            var floorMaterial = new THREE.ShadowMaterial();
-            // floorMaterial.opacity = 0.3;
-            var floorMesh = new THREE.Mesh(floorGeometry, floorMaterial);
-            floorMesh.rotation.x = -Math.PI / 2;
-            floorMesh.receiveShadow = true;
-            this.scene.add(floorMesh);
-
-            var texture = this.threeAssets['color']
-            var boatGeo = this.threeAssets['boat']
-            var boatMat = new THREE.MeshStandardMaterial({
-                color: 0x646464,
-                roughness: .83,
-                metalness: .5,
-                emissive: 0xc8c8c8,
-                map: texture,
-                emissiveMap: texture,
-                side: THREE.DoubleSide
-            })
-            var boatMesh = new THREE.Mesh(boatGeo, boatMat)
-            boatMesh.position.set(30, 0, 0)
-            this.scene.add(boatMesh)
-            // console.log(this.threeAssets['DamagedHelmet'])
-            // this.threeAssets['DamagedHelmet'].scene.position.x = 10;
-            // this.scene.add(this.threeAssets['DamagedHelmet'].scene)
-
-            // var cesiuman = this.threeAssets['CesiumMan']
-            // this.threeAssets['CesiumMan'].scene.position.x = -10;
-            // this.threeAssets['CesiumMan'].scene.scale.copy(new THREE.Vector3(2, 2, 2))
-            // this.scene.add(this.threeAssets['CesiumMan'].scene)
-            // var cesiumanims = this.threeAssets['CesiumMan'].animations;
-            // // console.log(cesiumanims)
-            // var mixer3 = new THREE.AnimationMixer(this.threeAssets['CesiumMan'].scene)
-            // // var walkAc = mixer2.clipAction(cesiumanims[0]);
-
-            // for (var j = 0; j < cesiuman.animations.length; j++) {
-            //     var animation = cesiuman.animations[j];
-            //     animation.duration = 3;
-            //     var action = mixer3.clipAction(animation);
-            //     action.play();
-            // }
-
-            // this.allMixers.push(mixer3);
-
-
-            // var boxgeometry = new THREE.CubeGeometry(1, 1, 1);
-            // var boxmaterial = new THREE.MeshNormalMaterial({
-            //     transparent: true,
-            //     opacity: 0.5,
-            //     side: THREE.DoubleSide
-            // });
-            // var boxmesh = new THREE.Mesh(boxgeometry, boxmaterial);
-            // boxmesh.position.y = boxgeometry.parameters.height / 2
-            // this.scene.add(boxmesh);
-            // var torusgeometry = new THREE.TorusKnotGeometry(0.3, 0.1, 64, 16);
-            // var torusmaterial = new THREE.MeshNormalMaterial();
-            // var torusmesh = new THREE.Mesh(torusgeometry, torusmaterial);
-            // torusmesh.position.y = 0.5
-            // this.scene.add(torusmesh);
-            // console.log('a')
-
-            // var mixer = this.addGlb('test1');
-            var testGltf = this.threeAssets['Soldier'];
-            var testModel = this.threeAssets['Soldier'].scene;
+            var testGltf = that.threeAssets['Soldier'];
+            var testModel = testGltf.scene;
             this.scene.add(testModel);
-            testModel.position.z = 1;
+            // testModel.position.z = 1;
 
             // testModel.scale.copy(new THREE.Vector3(0.003, 0.003, 0.003))
-            testModel.rotateX(-Math.PI / 2);
-            testModel.rotateY(Math.PI );
+            // testModel.rotateX(-Math.PI / 2);
+            // testModel.rotateY(Math.PI);
 
-            // var testSkeleton = new THREE.SkeletonHelper(testModel);
-            // testSkeleton.visible = true;
-            // this.scene.add(testSkeleton);
+            var testSkeleton = new THREE.SkeletonHelper(testModel);
+            testSkeleton.visible = true;
+            this.scene.add(testSkeleton);
             var animations = testGltf.animations;
-            var mixer = new THREE.AnimationMixer(testModel)
+            that.mixer = new THREE.AnimationMixer(testModel)
 
             for (var i = 0; i < animations.length; i++) {
-                var action = mixer.clipAction(animations[i]);
+                var action = that.mixer.clipAction(animations[i]);
                 action.play();
             }
-            this.allMixers.push(mixer)
-
-             that.initAR();
-
-            // var gltf = this.threeAssets['BotSkinned'];
-            // var model = this.threeAssets['BotSkinned'].scene;
-            // this.scene.add(model)
-            // console.log('b')
-
-            // model.traverse(function(object) {
-            //     if (object.isMesh) object.castShadow = true;
-            // });
-
-            // var skeleton = new THREE.SkeletonHelper(model);
-            // skeleton.visible = true;
-            // this.scene.add(skeleton);
-
-            // model.position.x = 0;
-            // model.scale.copy(new THREE.Vector3(1, 1, 1))
-            // model.rotateX(-Math.PI / 2)
-            // model.rotateY(Math.PI)
-
-            // var animations = gltf.animations;
-            // var mixer = new THREE.AnimationMixer(model)
-
-            // for (var i = 0; i < animations.length; i++) {
-            //     var action = mixer.clipAction(animations[i]);
-            //     action.play();
-            // }
-
-            // this.allMixers.push(mixer)
-
-            // this.allMixers.push(mixer2)
-            this.onRenderFcts.push(function(delta) {
-                // console.log(that.allMixers)
-                // if(that.allMixers.length<1) return;
-                if (!that.scene.visible) return
-                for (var i = 0; i < that.allMixers.length; i++) {
-                    (function(k) {
-                        that.allMixers[k].update(delta)
-                    })(i)
-                }
-            })
+            // var action = that.mixer.clipAction(animations[0]);
+            // action.play();
+            // var mixer = this.addGlb('test1');
+            // this.allMixers.push(mixer);
+            that.mrender()
 
         },
         loading() {
@@ -406,6 +304,7 @@ export default {
                 console.log('Loading complete!')
                 that.addObj();
                 // that.addObj && that.addObj()
+
             }
 
             manager.onProgress = function(url, itemsLoaded, itemsTotal) {
@@ -418,19 +317,13 @@ export default {
             manager.onError = function(url) {
                 console.log('There was an error loading ' + url)
             }
-            var objectLoader = new THREE.LegacyJSONLoader(manager)
-            // objectLoader.load(`${this.publicPath}model/airplane.json`, function(rs) {
-            //     that.threeAssets['airplane'] = rs
-            // })
-            objectLoader.load(`${this.publicPath}model/boat.json`, function(rs) {
-                that.threeAssets['boat'] = rs
-            })
 
-            var textureLoader = new THREE.TextureLoader(manager)
-            textureLoader.load(`${this.publicPath}model/color.jpg`, function(rs) {
-                that.threeAssets['color'] = rs
-            })
             var gltfLoader = new GLTFLoader(manager);
+            var dracoLoader = new DRACOLoader();
+            dracoLoader.setDecoderPath(`${this.publicPath}libs/draco`);
+            dracoLoader.setDecoderConfig({ type: 'js' });
+            gltfLoader.setDRACOLoader(dracoLoader);
+
             // gltfLoader.load(`${this.publicPath}model/Monster/Monster.gltf`, function(rs) {
             //     that.threeAssets['Monster'] = rs
             // })
@@ -448,10 +341,13 @@ export default {
             // })
             gltfLoader.load(`${this.publicPath}model/Soldier.glb`, function(rs) {
                 that.threeAssets['Soldier'] = rs
+                // that.addObj(rs);
+                // that.scene.add(rs.scene)
+                // that.mrender();
             })
-            gltfLoader.load(`${this.publicPath}model/test1.gltf`, function(rs) {
-                that.threeAssets['test1'] = rs
-            })
+            // gltfLoader.load(`${this.publicPath}model/test1.gltf`, function(rs) {
+            //     that.threeAssets['test1'] = rs
+            // })
         }
 
     }
