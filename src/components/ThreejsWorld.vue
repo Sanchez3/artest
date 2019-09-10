@@ -102,7 +102,7 @@ export default {
             // init controls for camera
             var markerControls = new THREEx.ArMarkerControls(arToolkitContext, that.camera, {
                 type: 'pattern',
-                patternUrl: `${this.publicPath}pattern/pattern-3.patt`,
+                patternUrl: `${this.publicPath}pattern/pattern-logo3.patt`,
                 // patternUrl: THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro',
                 // patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.kanji',
                 // as we controls the camera, set changeMatrixMode: 'cameraTransformMatrix'
@@ -172,7 +172,7 @@ export default {
             this.renderer.setSize(window.innerWidth, window.innerHeight)
         },
         render(nowMsec) {
-            // var delta = this.clock.getDelta();
+            var delta = this.clock.getDelta();
             var lastTimeMsec = null;
             // requestAnimationFrame(animate);
             lastTimeMsec = lastTimeMsec || nowMsec - 1000 / 60
@@ -189,6 +189,7 @@ export default {
             // this.mixer && this.mixer.update(delta)
             this.onRenderFcts.forEach(function(onRenderFct) {
                 onRenderFct(deltaMsec / 1000)
+                // onRenderFct(delta)
             })
             this.renderer.render(this.scene, this.camera)
             this.stats.update();
