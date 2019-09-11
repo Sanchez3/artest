@@ -1,14 +1,16 @@
 <template>
     <div class="hello">
-        <h1>{{ msg }}</h1>
-        <h2>{{`${per}%`}}</h2>
         <!-- <video id="video" autoplay></video> -->
+        <Loader v-bind:per="per" v-if="per!==100" />
         <div id="canvas-element"></div>
+        <ErrorMessage v-if="webcamAllowed===false" />
+        <Award v-if="touchFlag===true"/>
     </div>
 </template>
 <script>
 import * as THREE from 'three'
 import { ARjs, THREEx } from 'ar.js'
+// import * as PhyTouch from 'phy-touch'
 // require('ar.js') ;
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
@@ -16,11 +18,19 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import Stats from 'stats.js'
 // THREEx.ArToolkitContext.baseURL = '../'
 // require('../assets/js/ar.min.js')
+import Loader from './Loader.vue'
+import ErrorMessage from './ErrorMessage.vue'
+import Award from './Award.vue'
 
 export default {
     name: 'ThreejsWorld',
     props: {
         msg: String
+    },
+    components: {
+        Loader,
+        ErrorMessage,
+        Award
     },
     created() {
         // console.log(ARjs.isEmpty() ? 'Lodash is available here!' : 'Uh oh..');
@@ -28,6 +38,7 @@ export default {
     data() {
         return {
             per: 0,
+            webcamAllowed: true,
             scene: '',
             renderer: '',
             light: '',
@@ -38,16 +49,29 @@ export default {
             onRenderFcts: [],
             allMixers: [],
             mixer: '',
+            raycaster: '',
+            touchFlag:false
         }
     },
     mounted() {
         var that = this;
         this.$nextTick(function() {
+            that.checkAPI()
             that.init()
             that.initAR();
         })
     },
     methods: {
+        checkAPI() {
+            if (navigator.mediaDevices === undefined ||
+                navigator.mediaDevices.enumerateDevices === undefined ||
+                navigator.mediaDevices.getUserMedia === undefined) {
+                if (navigator.mediaDevices === undefined) var fctName = 'navigator.mediaDevices'
+                else if (navigator.mediaDevices.enumerateDevices === undefined) var fctName = 'navigator.mediaDevices.enumerateDevices'
+                else if (navigator.mediaDevices.getUserMedia === undefined) var fctName = 'navigator.mediaDevices.getUserMedia'
+                this.webcamAllowed = true
+            }
+        },
         initAR() {
             var that = this;
             var arToolkitSource = new THREEx.ArToolkitSource({
@@ -60,9 +84,14 @@ export default {
                 // sourceType : 'video',
                 // sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/videos/headtracking.mp4',
             })
+
+            function onError() {
+                this.webcamAllowed = false
+            }
             arToolkitSource.init(function onReady() {
                 onResize()
-            })
+            }, onError.bind(this))
+
             window.addEventListener('resize', function() {
                 onResize()
             })
@@ -76,8 +105,10 @@ export default {
             }
             // create atToolkitContext
             var arToolkitContext = new THREEx.ArToolkitContext({
+                debug: true,
                 cameraParametersUrl: THREEx.ArToolkitContext.baseURL + '../data/data/camera_para.dat',
                 detectionMode: 'mono',
+                maxDetectionRate: 30,
             })
             // initialize it
             arToolkitContext.init(function onCompleted() {
@@ -123,7 +154,6 @@ export default {
             this.scene = new THREE.Scene()
             this.scene.add(new THREE.GridHelper(1000, 100));
             this.scene.add(new THREE.AxesHelper(20));
-            this.scene.visible = false
 
 
             this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
@@ -135,12 +165,14 @@ export default {
             this.stats = new Stats();
             document.getElementById('canvas-element').appendChild(this.stats.dom);
             // ar camera
-            this.camera = new THREE.Camera();
+            this.camera = new THREE.PerspectiveCamera();
             this.scene.add(this.camera);
+            this.scene.visible = false;
+
 
             // this.camera = new THREE.PerspectiveCamera(45, wWidth / wHeight, 1, 1000)
             // this.camera.position.set(0, 10, 0)
-            // // this.camera.lookAt(0, 0, 0)
+            // this.camera.lookAt(0, 0, 0)
             // var orbitControls = new OrbitControls(this.camera, this.renderer.domElement)
             // orbitControls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
             // orbitControls.dampingFactor = 0.05;
@@ -188,8 +220,8 @@ export default {
             // }
             // this.mixer && this.mixer.update(delta)
             this.onRenderFcts.forEach(function(onRenderFct) {
-                onRenderFct(deltaMsec / 1000)
-                // onRenderFct(delta)
+                // onRenderFct(deltaMsec / 1000)
+                onRenderFct(delta)
             })
             this.renderer.render(this.scene, this.camera)
             this.stats.update();
@@ -219,7 +251,7 @@ export default {
             model.position.z = 2;
             model.position.y = -2;
 
-            model.scale.copy(new THREE.Vector3(0.005, 0.005, 0.005))
+            // model.scale.copy(new THREE.Vector3(0.005, 0.005, 0.005))
             model.rotateX(-Math.PI / 2);
             // model.rotateY(Math.PI)
 
@@ -236,44 +268,35 @@ export default {
 
             this.allMixers.push(mixer)
 
-
+            return model;
         },
         addObj() {
             var that = this;
-            // var floorGeometry = new THREE.PlaneGeometry(20, 20);
-            // var floorMaterial = new THREE.ShadowMaterial();
-            // // floorMaterial.opacity = 0.3;
-            // var floorMesh = new THREE.Mesh(floorGeometry, floorMaterial);
-            // floorMesh.rotation.x = -Math.PI / 2;
-            // floorMesh.receiveShadow = true;
-            // this.scene.add(floorMesh);
-            this.addGlb('test1')
+            var model = this.addGlb('Soldier');
+            console.log(model)
+            var mouse = new THREE.Vector2();
+            this.raycaster = new THREE.Raycaster();
+            document.addEventListener('touchend', function(event) {
+                event.preventDefault();
+                // console.log( event.changedTouches[0].pageX)
+                mouse.x = (event.changedTouches[0].pageX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.changedTouches[0].pageY / window.innerHeight) * 2 + 1;
 
-            // var testGltf = that.threeAssets['Soldier'];
-            // var testModel = testGltf.scene;
-            // this.scene.add(testModel);
-            // testModel.position.y = 1;
+                that.raycaster.setFromCamera(mouse, that.camera);
 
-            // // testModel.scale.copy(new THREE.Vector3(0.003, 0.003, 0.003))
-            // // testModel.rotateX(-Math.PI / 2);
-            // // testModel.rotateY(Math.PI);
+                var intersects = that.raycaster.intersectObjects(model.children[0].children);
+                // console.log(intersects)
+                console.log('a')
+                if (intersects.length > 0) {
+                    console.log('b')
+                    that.touchFlag=true;
+                }
 
-            // var testSkeleton = new THREE.SkeletonHelper(testModel);
-            // testSkeleton.visible = true;
-            // this.scene.add(testSkeleton);
-            // var animations = testGltf.animations;
-            // var mixer = new THREE.AnimationMixer(testModel)
+            }, false);
 
-            // for (var i = 0; i < animations.length; i++) {
-            //     var action = mixer.clipAction(animations[i]);
-            //     action.play();
-            // }
-            // var action = that.mixer.clipAction(animations[0]);
-            // action.play();
-            // var mixer = this.addGlb('test1');
-            // this.allMixers.push(mixer);
+
             this.onRenderFcts.push(function(delta) {
-                if (!that.scene.visible) return
+                // if (!that.scene.visible) return
                 for (var i = 0; i < that.allMixers.length; i++) {
                     var m = that.allMixers[i]
                     m.update(delta)
@@ -336,8 +359,11 @@ export default {
                 // that.scene.add(rs.scene)
                 // that.mrender();
             })
-            gltfLoader.load(`${this.publicPath}model/test1.glb`, function(rs) {
-                that.threeAssets['test1'] = rs
+            gltfLoader.load(`${this.publicPath}model/city.glb`, function(rs) {
+                that.threeAssets['city'] = rs
+            })
+            gltfLoader.load(`${this.publicPath}model/Jumping.glb`, function(rs) {
+                that.threeAssets['Jumping'] = rs
             })
         }
 
