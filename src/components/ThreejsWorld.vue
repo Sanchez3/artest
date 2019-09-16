@@ -260,8 +260,8 @@ export default {
             // }
             // this.mixer && this.mixer.update(delta)
             this.onRenderFcts.forEach(function(onRenderFct) {
-                // onRenderFct(deltaMsec / 1000)
-                onRenderFct(delta)
+                onRenderFct(deltaMsec / 1000)
+                // onRenderFct(delta)
             })
             this.renderer.render(this.scene, this.camera)
             // this.renderBloom();
@@ -347,11 +347,11 @@ export default {
             // skeleton.visible = true;
             // this.scene.add(skeleton);
 
-            // model.position.z = 2;
-            // model.position.y = -2;
+            model.position.z = 2;
+            model.position.y = 2;
 
             model.scale.copy(new THREE.Vector3(0.1, 0.1, 0.1))
-            model.rotateX(2*Math.PI );
+            model.rotateX(-Math.PI / 2);
             // model.rotateZ(Math.PI)
 
             var animations = gltf.animations;
