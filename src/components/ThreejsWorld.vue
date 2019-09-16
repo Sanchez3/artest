@@ -351,8 +351,8 @@ export default {
             // model.position.y = -2;
 
             model.scale.copy(new THREE.Vector3(0.1, 0.1, 0.1))
-            model.rotateX(-Math.PI / 2);
-            // model.rotateY(Math.PI)
+            model.rotateX(2*Math.PI );
+            // model.rotateZ(Math.PI)
 
             var animations = gltf.animations;
             var mixer = new THREE.AnimationMixer(model)
