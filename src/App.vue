@@ -14,7 +14,7 @@ export default {
     mounted() {
         var that = this;
         this.$nextTick(function() {
-            that.cssInit().eventInit();
+            // that.cssInit().eventInit();
         })
     },
     methods: {
@@ -235,5 +235,30 @@ html {
     text-align: center;
     color: #2c3e50;
     font-size: 0.32rem;
+}
+
+@-webkit-keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.fadeIn {
+    -webkit-animation-name: fadeIn;
+    animation-name: fadeIn;
 }
 </style>

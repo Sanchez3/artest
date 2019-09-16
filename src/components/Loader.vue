@@ -1,5 +1,5 @@
 <template>
-    <div class="loader-wrapper">
+    <div class="loader-wrapper fadeIn">
         <h1>Loading<br>{{`${per}%`}}</h1>
     </div>
 </template>
@@ -22,14 +22,18 @@ export default {
     z-index: 999;
     background-color: #fff;
     text-align: center;
+    -webkit-animation-duration: 0.6s;
+    animation-duration: 0.6s;
+    -webkit-animation-fill-mode: both;
+    animation-fill-mode: both;
 }
 
 .loader-wrapper:after {
     content: "";
     display: inline-block;
-    height:100%;
+    height: 100%;
     vertical-align: middle;
-    margin-left:-0.25em;
+    margin-left: -0.25em;
 }
 
 h1 {

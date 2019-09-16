@@ -1,5 +1,5 @@
 <template>
-    <div class="award-wrapper">
+    <div class="award-wrapper fadeIn">
         <h1>！！！Award！！！</h1>
     </div>
 </template>
@@ -20,6 +20,10 @@ export default {
     background-color: #000;
     /*text-align: left;*/
     color: #fff;
+    -webkit-animation-duration: 0.6s;
+    animation-duration: 0.6s;
+    -webkit-animation-fill-mode: both;
+    animation-fill-mode: both;
 }
 
 ul {

@@ -4,7 +4,7 @@
         <Loader v-bind:per="per" v-if="per!==100" />
         <div id="canvas-element"></div>
         <ErrorMessage v-if="webcamAllowed===false" />
-        <Award v-if="touchFlag===true"/>
+        <Award v-if="touchFlag===true" />
     </div>
 </template>
 <script>
@@ -15,12 +15,27 @@ import { ARjs, THREEx } from 'ar.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
+import { DragControls } from 'three/examples/jsm/controls/DragControls.js';
+
+// import { DeviceOrientationControls } from 'three/examples/jsm/controls/DeviceOrientationControls.js';
+
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+// import lightShaderVert from '/lightshader.vert'
+// import lightShaderFrag from '/lightshader.frag'
+
 import Stats from 'stats.js'
 // THREEx.ArToolkitContext.baseURL = '../'
 // require('../assets/js/ar.min.js')
 import Loader from './Loader.vue'
 import ErrorMessage from './ErrorMessage.vue'
 import Award from './Award.vue'
+// import  LightFrag from '@/shaders/LightFrag.glsl'
+// import  LightVert from '@/shaders/LightVert.glsl'
+
+// var glslify = require('glslify')
 
 export default {
     name: 'ThreejsWorld',
@@ -50,7 +65,7 @@ export default {
             allMixers: [],
             mixer: '',
             raycaster: '',
-            touchFlag:false
+            touchFlag: false
         }
     },
     mounted() {
@@ -105,7 +120,7 @@ export default {
             }
             // create atToolkitContext
             var arToolkitContext = new THREEx.ArToolkitContext({
-                debug: true,
+                debug: false,
                 cameraParametersUrl: THREEx.ArToolkitContext.baseURL + '../data/data/camera_para.dat',
                 detectionMode: 'mono',
                 maxDetectionRate: 30,
@@ -140,7 +155,7 @@ export default {
                 changeMatrixMode: 'cameraTransformMatrix'
             })
             // as we do changeMatrixMode: 'cameraTransformMatrix', start with invisible scene
-            // that.scene.visible = false
+            that.scene.visible = false
         },
         init() {
             function animate(nowMsec) {
@@ -149,11 +164,24 @@ export default {
             }
             var wWidth = window.innerWidth
             var wHeight = window.innerHeight
+
+            this.bloomLayer = new THREE.Layers();
+            this.bloomLayer.set(1);
+            this.darkMaterial = new THREE.MeshBasicMaterial({ color: "black" });
+            this.materials = {};
+
             this.clock = new THREE.Clock();
 
             this.scene = new THREE.Scene()
-            this.scene.add(new THREE.GridHelper(1000, 100));
-            this.scene.add(new THREE.AxesHelper(20));
+            var girdHelper = new THREE.GridHelper(1000, 100);
+            var axesHelper = new THREE.AxesHelper(20);
+             
+            // axesHelper.layers.enable(0);
+            // girdHelper.layers.enable(0);
+           
+            // this.scene.add(girdHelper);
+            // this.scene.add(axesHelper);
+            // console.log(axesHelper)
 
 
             this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
@@ -170,14 +198,18 @@ export default {
             this.scene.visible = false;
 
 
-            // this.camera = new THREE.PerspectiveCamera(45, wWidth / wHeight, 1, 1000)
+            // this.camera = new THREE.PerspectiveCamera(75, wWidth / wHeight, 1, 1000)
             // this.camera.position.set(0, 10, 0)
             // this.camera.lookAt(0, 0, 0)
+
+            // // //orientation
+            // // // this.orientControls = new DeviceOrientationControls(this.camera);
+
             // var orbitControls = new OrbitControls(this.camera, this.renderer.domElement)
             // orbitControls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
             // orbitControls.dampingFactor = 0.05;
             // orbitControls.screenSpacePanning = false;
-            // orbitControls.minDistance = 10;
+            // orbitControls.minDistance = 100;
             // orbitControls.maxDistance = 500;
             // orbitControls.maxPolarAngle = Math.PI / 2;
             // this.scene.add(this.camera)
@@ -185,23 +217,31 @@ export default {
             //     orbitControls.update();
             // })
 
-            var hemiLight = new THREE.HemisphereLight();
-            this.scene.add(hemiLight);
-            const light1 = new THREE.AmbientLight(0xffffff, 0.5);
-            this.camera.add(light1);
+            // var hemiLight = new THREE.HemisphereLight();
+            // this.scene.add(hemiLight);
+            // const light1 = new THREE.AmbientLight(0xffffff, 0.5);
+            // this.camera.add(light1);
 
-            var light2 = new THREE.DirectionalLight(0xffffff, 1.5 * Math.PI);
-            light2.position.set(0.5, 0, 0.866); // ~60º
-            this.camera.add(light2);
+            // var light2 = new THREE.DirectionalLight(0xffffff, 1.5 * Math.PI);
+            // light2.position.set(0.5, 0, 0.866); // ~60º
+            // this.camera.add(light2);
+
+
 
             this.loading();
+
             this._animate = animate.bind(this);
 
         },
         onWindowResize() {
-            this.camera.aspect = window.innerWidth / window.innerHeight
+            var width = window.innerWidth;
+            var height = window.innerHeight;
+            this.camera.aspect = width / height
             this.camera.updateProjectionMatrix()
-            this.renderer.setSize(window.innerWidth, window.innerHeight)
+            this.renderer.setSize(width, height)
+            this.bloomComposer.setSize(width, height);
+            this.finalComposer.setSize(width, height);
+            this.render();
         },
         render(nowMsec) {
             var delta = this.clock.getDelta();
@@ -224,34 +264,93 @@ export default {
                 onRenderFct(delta)
             })
             this.renderer.render(this.scene, this.camera)
+            // this.renderBloom();
+            // this.finalComposer.render();
+
             this.stats.update();
 
         },
+        initGlsl() {
+            var renderScene = new RenderPass(this.scene, this.camera);
+            var bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+            var params = {
+                exposure: 1,
+                bloomStrength: 5,
+                bloomThreshold: 0,
+                bloomRadius: 0,
+                scene: "Scene with Glow"
+            }
+            bloomPass.threshold = params.bloomThreshold;
+            bloomPass.strength = params.bloomStrength;
+            bloomPass.radius = params.bloomRadius;
+            this.bloomComposer = new EffectComposer(this.renderer);
+            this.bloomComposer.renderToScreen = false;
+            this.bloomComposer.addPass(renderScene);
+            this.bloomComposer.addPass(bloomPass);
+            // var vertSrc = glslify(`${this.publicPath}shaders/LightVert.glsl`)
+            // console.log(glslify)
+            var finalPass = new ShaderPass(
+                new THREE.ShaderMaterial({
+                    uniforms: {
+                        baseTexture: { value: null },
+                        bloomTexture: { value: this.bloomComposer.renderTarget2.texture }
+                    },
+                    vertexShader: require('@/shaders/LightVert.glsl').default,
+                    fragmentShader: require('@/shaders/LightFrag.glsl').default,
+                    defines: {}
+                }), "baseTexture"
+            );
+            console.log(finalPass)
+            finalPass.needsSwap = true;
+            this.finalComposer = new EffectComposer(this.renderer);
+            this.finalComposer.addPass(renderScene);
+            this.finalComposer.addPass(finalPass);
+
+            this.render();
+        },
+        darkenNonBloomed(obj) {
+            // console.log(obj)
+            if (obj.isMesh && this.bloomLayer.test(obj.layers) === false) {
+                this.materials[obj.uuid] = obj.material;
+                obj.material = this.darkMaterial;
+            }
+        },
+        restoreMaterial(obj) {
+            if (this.materials[obj.uuid]) {
+                obj.material = this.materials[obj.uuid];
+                delete this.materials[obj.uuid];
+            }
+        },
+        renderBloom() {
+            // this.darkenNonBloomed()
+            this.scene.traverse(this.darkenNonBloomed);
+            this.bloomComposer.render();
+            this.scene.traverse(this.restoreMaterial);
+        },
+
         addGlb(name) {
             var that = this;
             var gltf = this.threeAssets[name];
-            console.log(gltf)
             var model = this.threeAssets[name].scene;
             this.scene.add(model)
-            var encoding = THREE.sRGBEncoding;
-            model.traverse(function(object) {
-                if (object.isMesh) {
-                    object.castShadow = true;
-                    var material = object.material;
-                    if (material.map) material.map.encoding = encoding;
-                    if (material.emissiveMap) material.emissiveMap.encoding = encoding;
-                    if (material.map || material.emissiveMap) material.needsUpdate = true;
-                }
-
-            });
+            // var encoding = THREE.sRGBEncoding;
+            // model.traverse(function(object) {
+            //     if (object.isMesh) {
+            //         object.castShadow = true;
+            //         var material = object.material;
+            //         if (material.map) material.map.encoding = encoding;
+            //         if (material.emissiveMap) material.emissiveMap.encoding = encoding;
+            //         if (material.map || material.emissiveMap) material.needsUpdate = true;
+            //     }
+            // });
             // var skeleton = new THREE.SkeletonHelper(model);
             // skeleton.visible = true;
             // this.scene.add(skeleton);
 
-            model.position.z = 2;
-            model.position.y = -2;
+            // model.position.z = 2;
+            // model.position.y = -2;
 
-            // model.scale.copy(new THREE.Vector3(0.005, 0.005, 0.005))
+            model.scale.copy(new THREE.Vector3(0.1, 0.1, 0.1))
             model.rotateX(-Math.PI / 2);
             // model.rotateY(Math.PI)
 
@@ -272,12 +371,32 @@ export default {
         },
         addObj() {
             var that = this;
-            var model = this.addGlb('Soldier');
-            console.log(model)
+            var model = this.addGlb('scene0');
+            var light = this.addGlb('light');
+            console.log(light)
+            light.children[0].layers.enable(1);
+            model.children.forEach(function(obj) {
+                // body...
+                obj.layers.enable(0);
+            })
+
+
+            // model.children[0].layers.enable(1);
             var mouse = new THREE.Vector2();
             this.raycaster = new THREE.Raycaster();
+
+            // var dragControls = new DragControls(model.children[0].children, this.camera, document.getElementById('app'));
+            // dragControls.addEventListener('dragstart', function() {
+            //     // controls.enabled = false;
+            //     console.log(1)
+            // });
+            // dragControls.addEventListener('dragend', function() {
+            //     // controls.enabled = true;
+            // });
+
             document.addEventListener('touchend', function(event) {
                 event.preventDefault();
+
                 // console.log( event.changedTouches[0].pageX)
                 mouse.x = (event.changedTouches[0].pageX / window.innerWidth) * 2 - 1;
                 mouse.y = -(event.changedTouches[0].pageY / window.innerHeight) * 2 + 1;
@@ -289,7 +408,7 @@ export default {
                 console.log('a')
                 if (intersects.length > 0) {
                     console.log('b')
-                    that.touchFlag=true;
+                    that.touchFlag = true;
                 }
 
             }, false);
@@ -302,6 +421,7 @@ export default {
                     m.update(delta)
                 }
             })
+            // this.initGlsl()
             this._animate()
 
         },
@@ -316,6 +436,7 @@ export default {
             manager.onLoad = function() {
                 console.log('Loading complete!')
                 that.addObj();
+
                 // that.addObj && that.addObj()
 
             }
@@ -359,11 +480,11 @@ export default {
                 // that.scene.add(rs.scene)
                 // that.mrender();
             })
-            gltfLoader.load(`${this.publicPath}model/city.glb`, function(rs) {
-                that.threeAssets['city'] = rs
+            gltfLoader.load(`${this.publicPath}model/scene0.gltf`, function(rs) {
+                that.threeAssets['scene0'] = rs
             })
-            gltfLoader.load(`${this.publicPath}model/Jumping.glb`, function(rs) {
-                that.threeAssets['Jumping'] = rs
+            gltfLoader.load(`${this.publicPath}model/light.gltf`, function(rs) {
+                that.threeAssets['light'] = rs
             })
         }
 
