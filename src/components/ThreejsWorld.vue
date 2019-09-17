@@ -17,7 +17,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import { DragControls } from 'three/examples/jsm/controls/DragControls.js';
 
-import { DeviceOrientationControls } from 'three/examples/jsm/controls/DeviceOrientationControls.js';
+// import { DeviceOrientationControls } from 'three/examples/jsm/controls/DeviceOrientationControls.js';
 
 // import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 // import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -73,7 +73,7 @@ export default {
         this.$nextTick(function() {
             that.checkAPI()
             that.init()
-            // that.initAR();
+            that.initAR();
         })
     },
     methods: {
@@ -128,7 +128,7 @@ export default {
             // initialize it
             arToolkitContext.init(function onCompleted() {
                 // copy projection matrix to camera
-                // if(that.scene.visible) return
+                if(that.scene.visible) return
                 that.camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
             })
             // update artoolkit on every frame
@@ -139,8 +139,9 @@ export default {
                 arToolkitContext.update(arToolkitSource.domElement)
                 // update scene.visible if the marker is seen
                 // console.log(that.camera.visible)
-                that.scene.visible = that.camera.visible
-                // firstT=false;
+                // if(!firstT&&that.scene.visible)return;
+                that.scene.visible = that.camera.visible;
+                // that.orientControls.connect();
             })
             ////////////////////////////////////////////////////////////////////////////////
             //          Create a ArMarkerControls
@@ -195,16 +196,18 @@ export default {
             // ar camera
             // this.camera = new THREE.PerspectiveCamera();
             // this.scene.add(this.camera);
-            // this.scene.visible = false;
+            this.scene.visible = false;
 
 
             this.camera = new THREE.PerspectiveCamera(75, wWidth / wHeight, 1, 1000)
             // this.camera.position.set(0, 10, 0)
             // this.camera.lookAt(0, 0, 0)
+            this.scene.add(this.camera);
 
             // //orientation
-            this.orientControls = new DeviceOrientationControls(this.camera);
-            // orientControls.disconnect();
+            // this.orientControls = new DeviceOrientationControls(this.scene);
+
+            // this.orientControls.disconnect();
             
             // this.onRenderFcts.push(function() {
             //     orientControls.update();
@@ -268,7 +271,6 @@ export default {
                 onRenderFct(deltaMsec / 1000)
                 // onRenderFct(delta)
             })
-            this.orientControls.update();
             this.renderer.render(this.scene, this.camera)
             // this.renderBloom();
             // this.finalComposer.render();
