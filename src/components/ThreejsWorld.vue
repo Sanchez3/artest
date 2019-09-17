@@ -17,7 +17,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import { DragControls } from 'three/examples/jsm/controls/DragControls.js';
 
-// import { DeviceOrientationControls } from 'three/examples/jsm/controls/DeviceOrientationControls.js';
+import { DeviceOrientationControls } from 'three/examples/jsm/controls/DeviceOrientationControls.js';
 
 // import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 // import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -73,7 +73,7 @@ export default {
         this.$nextTick(function() {
             that.checkAPI()
             that.init()
-            that.initAR();
+            // that.initAR();
         })
     },
     methods: {
@@ -175,10 +175,10 @@ export default {
             this.scene = new THREE.Scene()
             var girdHelper = new THREE.GridHelper(1000, 100);
             var axesHelper = new THREE.AxesHelper(20);
-             
+
             // axesHelper.layers.enable(0);
             // girdHelper.layers.enable(0);
-           
+
             // this.scene.add(girdHelper);
             // this.scene.add(axesHelper);
             // console.log(axesHelper)
@@ -193,17 +193,22 @@ export default {
             this.stats = new Stats();
             document.getElementById('canvas-element').appendChild(this.stats.dom);
             // ar camera
-            this.camera = new THREE.PerspectiveCamera();
-            this.scene.add(this.camera);
-            this.scene.visible = false;
+            // this.camera = new THREE.PerspectiveCamera();
+            // this.scene.add(this.camera);
+            // this.scene.visible = false;
 
 
-            // this.camera = new THREE.PerspectiveCamera(75, wWidth / wHeight, 1, 1000)
+            this.camera = new THREE.PerspectiveCamera(75, wWidth / wHeight, 1, 1000)
             // this.camera.position.set(0, 10, 0)
             // this.camera.lookAt(0, 0, 0)
 
-            // // //orientation
-            // // // this.orientControls = new DeviceOrientationControls(this.camera);
+            // //orientation
+            var orientControls = new DeviceOrientationControls(this.camera);
+            orientControls.connect();
+            
+            this.onRenderFcts.push(function() {
+                orientControls.update();
+            })
 
             // var orbitControls = new OrbitControls(this.camera, this.renderer.domElement)
             // orbitControls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
