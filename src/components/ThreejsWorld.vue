@@ -159,7 +159,7 @@ export default {
         },
         init() {
             function animate(nowMsec) {
-                requestAnimationFrame(this._animate);
+                window.requestAnimationFrame(this._animate);
                 this.render(nowMsec);
             }
             var wWidth = window.innerWidth
@@ -203,12 +203,12 @@ export default {
             // this.camera.lookAt(0, 0, 0)
 
             // //orientation
-            var orientControls = new DeviceOrientationControls(this.camera);
-            orientControls.connect();
+            this.orientControls = new DeviceOrientationControls(this.camera);
+            // orientControls.disconnect();
             
-            this.onRenderFcts.push(function() {
-                orientControls.update();
-            })
+            // this.onRenderFcts.push(function() {
+            //     orientControls.update();
+            // })
 
             // var orbitControls = new OrbitControls(this.camera, this.renderer.domElement)
             // orbitControls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
@@ -268,6 +268,7 @@ export default {
                 onRenderFct(deltaMsec / 1000)
                 // onRenderFct(delta)
             })
+            this.orientControls.update();
             this.renderer.render(this.scene, this.camera)
             // this.renderBloom();
             // this.finalComposer.render();
@@ -427,6 +428,7 @@ export default {
                 }
             })
             // this.initGlsl()
+
             this._animate()
 
         },
