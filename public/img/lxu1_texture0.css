@@ -1,0 +1,30 @@
+/* -----------------------------------------------------
+   created with https://www.codeandweb.com/texturepacker 
+   -----------------------------------------------------
+   $TexturePacker:SmartUpdate:d0beb55b03174a837abe3e790eb5dbc0:c33274ffe85ef8c032b21bcc1af30020:b3ea19cfe3e6d1a9219b505cd142af78$
+   -----------------------------------------------------
+
+   usage: <span class="{-spritename-} sprite"></span>
+
+   replace {-spritename-} with the sprite you like to use
+
+*/
+
+.sprite {display:inline-block; overflow:hidden; background-repeat: no-repeat;background-image:url(lxu1_texture0.png);}
+
+.lxu_20028 {width:256px; height:256px; background-position: -768px -768px}
+.lxu_20029 {width:256px; height:256px; background-position: -512px -768px}
+.lxu_20030 {width:256px; height:256px; background-position: -256px -768px}
+.lxu_20031 {width:256px; height:256px; background-position: -0px -768px}
+.lxu_20032 {width:256px; height:256px; background-position: -768px -512px}
+.lxu_20033 {width:256px; height:256px; background-position: -512px -512px}
+.lxu_20034 {width:256px; height:256px; background-position: -256px -512px}
+.lxu_20035 {width:256px; height:256px; background-position: -0px -512px}
+.lxu_20036 {width:256px; height:256px; background-position: -768px -256px}
+.lxu_20037 {width:256px; height:256px; background-position: -512px -256px}
+.lxu_20038 {width:256px; height:256px; background-position: -256px -256px}
+.lxu_20039 {width:256px; height:256px; background-position: -0px -256px}
+.lxu_20040 {width:256px; height:256px; background-position: -768px -0px}
+.lxu_20041 {width:256px; height:256px; background-position: -512px -0px}
+.lxu_20042 {width:256px; height:256px; background-position: -256px -0px}
+.lxu_20043 {width:256px; height:256px; background-position: -0px -0px}

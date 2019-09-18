@@ -61,6 +61,7 @@ export default {
             controls: '',
             publicPath: process.env.BASE_URL,
             threeAssets: [],
+            movieAssets: [],
             onRenderFcts: [],
             allMixers: [],
             mixer: '',
@@ -100,6 +101,7 @@ export default {
                 // sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/videos/headtracking.mp4',
             })
 
+
             function onError() {
                 this.webcamAllowed = false
             }
@@ -120,19 +122,19 @@ export default {
             }
             // create atToolkitContext
             var arToolkitContext = new THREEx.ArToolkitContext({
-                debug: false,
+                debug: true,
                 cameraParametersUrl: THREEx.ArToolkitContext.baseURL + '../data/data/camera_para.dat',
                 detectionMode: 'mono',
                 maxDetectionRate: 30,
             })
+            this.arToolkitContext=arToolkitContext;
             // initialize it
             arToolkitContext.init(function onCompleted() {
                 // copy projection matrix to camera
-                if(that.scene.visible) return
+                // if (that.scene.visible) return
                 that.camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
             })
             // update artoolkit on every frame
-            var firstT = true;
             this.onRenderFcts.push(function(delta) {
                 // console.log(arToolkitSource.ready)
                 if (arToolkitSource.ready === false) return
@@ -140,23 +142,23 @@ export default {
                 // update scene.visible if the marker is seen
                 // console.log(that.camera.visible)
                 // if(!firstT&&that.scene.visible)return;
-                that.scene.visible = that.camera.visible;
+                // that.scene.visible = that.camera.visible;
                 // that.orientControls.connect();
             })
             ////////////////////////////////////////////////////////////////////////////////
             //          Create a ArMarkerControls
             ////////////////////////////////////////////////////////////////////////////////
             // init controls for camera
-            var markerControls = new THREEx.ArMarkerControls(arToolkitContext, that.camera, {
-                type: 'pattern',
-                patternUrl: `${this.publicPath}pattern/pattern-logo3.patt`,
-                // patternUrl: THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro',
-                // patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.kanji',
-                // as we controls the camera, set changeMatrixMode: 'cameraTransformMatrix'
-                changeMatrixMode: 'cameraTransformMatrix'
-            })
+            // var markerControls = new THREEx.ArMarkerControls(arToolkitContext, that.camera, {
+            //     type: 'pattern',
+            //     patternUrl: `${this.publicPath}pattern/pattern-logo3.patt`,
+            //     // patternUrl: THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro',
+            //     // patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.kanji',
+            //     // as we controls the camera, set changeMatrixMode: 'cameraTransformMatrix'
+            //     changeMatrixMode: 'cameraTransformMatrix'
+            // })
             // as we do changeMatrixMode: 'cameraTransformMatrix', start with invisible scene
-            that.scene.visible = false
+            // that.scene.visible = false
         },
         init() {
             function animate(nowMsec) {
@@ -194,24 +196,16 @@ export default {
             this.stats = new Stats();
             document.getElementById('canvas-element').appendChild(this.stats.dom);
             // ar camera
-            // this.camera = new THREE.PerspectiveCamera();
-            // this.scene.add(this.camera);
-            this.scene.visible = false;
-
-
-            this.camera = new THREE.PerspectiveCamera(75, wWidth / wHeight, 1, 1000)
-            // this.camera.position.set(0, 10, 0)
-            // this.camera.lookAt(0, 0, 0)
+            this.camera = new THREE.PerspectiveCamera();
             this.scene.add(this.camera);
+            // this.scene.visible = false;
 
-            // //orientation
-            // this.orientControls = new DeviceOrientationControls(this.scene);
 
-            // this.orientControls.disconnect();
-            
-            // this.onRenderFcts.push(function() {
-            //     orientControls.update();
-            // })
+            // this.camera = new THREE.PerspectiveCamera(75, wWidth / wHeight, 1, 1000)
+            // this.camera.position.set(0, 0, 10)
+            // this.camera.lookAt(0, 0, 0)
+            // this.scene.add(this.camera);
+
 
             // var orbitControls = new OrbitControls(this.camera, this.renderer.domElement)
             // orbitControls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
@@ -225,14 +219,14 @@ export default {
             //     orbitControls.update();
             // })
 
-            // var hemiLight = new THREE.HemisphereLight();
-            // this.scene.add(hemiLight);
-            // const light1 = new THREE.AmbientLight(0xffffff, 0.5);
-            // this.camera.add(light1);
+            var hemiLight = new THREE.HemisphereLight();
+            this.scene.add(hemiLight);
+            const light1 = new THREE.AmbientLight(0xffffff, 0.5);
+            this.camera.add(light1);
 
-            // var light2 = new THREE.DirectionalLight(0xffffff, 1.5 * Math.PI);
-            // light2.position.set(0.5, 0, 0.866); // ~60º
-            // this.camera.add(light2);
+            var light2 = new THREE.DirectionalLight(0xffffff, 1.5 * Math.PI);
+            light2.position.set(0.5, 0, 0.866); // ~60º
+            this.camera.add(light2);
 
 
 
@@ -253,7 +247,7 @@ export default {
         },
         render(nowMsec) {
             var delta = this.clock.getDelta();
-            var lastTimeMsec = null;
+            var lastTimeMsec = 0;
             // requestAnimationFrame(animate);
             lastTimeMsec = lastTimeMsec || nowMsec - 1000 / 60
             var deltaMsec = Math.min(200, nowMsec - lastTimeMsec)
@@ -268,8 +262,8 @@ export default {
             // }
             // this.mixer && this.mixer.update(delta)
             this.onRenderFcts.forEach(function(onRenderFct) {
-                onRenderFct(deltaMsec / 1000)
-                // onRenderFct(delta)
+                // onRenderFct(deltaMsec / 1000)
+                onRenderFct(delta)
             })
             this.renderer.render(this.scene, this.camera)
             // this.renderBloom();
@@ -335,12 +329,123 @@ export default {
             this.bloomComposer.render();
             this.scene.traverse(this.restoreMaterial);
         },
+        addMovieClip(_texture) {
+            var movieTextures = this.movieAssets;
 
+            // texture, #horiz, #vert, #total, duration.
+            var material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
+            // var movie = new TextureAnimator(movieTextures, 'lxu1_texture', 6, 6, 36, 36, 120, material);
+            var movie = new TextureAnimator1(movieTextures['lxu1_texture0'], 4, 4, 16, 1200);
+            var geometry = new THREE.PlaneGeometry(50, 50);
+            var material = new THREE.MeshBasicMaterial({ map: movieTextures['lxu1_texture0'], side: THREE.DoubleSide });
+            var plane = new THREE.Mesh(geometry, material);
+            this.scene.add(plane);
+            this.onRenderFcts.push(function(delta) {
+                // console.log(delta)
+                movie.update(delta * 1000)
+            })
+
+            return plane;
+
+            function TextureAnimator1(texture, tilesHoriz, tilesVert, numTiles, tileDispDuration) {
+                // note: texture passed by reference, will be updated by the update function.
+
+                this.tilesHorizontal = tilesHoriz;
+                this.tilesVertical = tilesVert;
+                // how many images does this spritesheet contain?
+                //  usually equals tilesHoriz * tilesVert, but not necessarily,
+                //  if there at blank tiles at the bottom of the spritesheet. 
+                this.numberOfTiles = numTiles;
+                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                texture.repeat.set(1 / this.tilesHorizontal, 1 / this.tilesVertical);
+
+                // how long should each image be displayed?
+                this.tileDisplayDuration = tileDispDuration;
+
+                // how long has the current image been displayed?
+                this.currentDisplayTime = 0;
+
+                // which image is currently being displayed?
+                this.currentTile = 0;
+
+                this.update = function(milliSec) {
+                    this.currentDisplayTime += milliSec;
+                    while (this.currentDisplayTime > this.tileDisplayDuration) {
+                        this.currentDisplayTime -= this.tileDisplayDuration;
+                        this.currentTile++;
+                        if (this.currentTile == this.numberOfTiles) {
+                            this.currentTile = 0;
+                        }
+                        var currentColumn = this.currentTile % this.tilesHorizontal;
+                        texture.offset.x = currentColumn / this.tilesHorizontal;
+                        var currentRow = Math.floor(this.currentTile / this.tilesHorizontal);
+                        texture.offset.y = currentRow / this.tilesVertical;
+                    }
+                };
+            }
+
+            function TextureAnimator(textures, prefix, tilesHoriz, tilesVert, numTiles, totalTiles, tileDispDuration, material) {
+                // note: texture passed by reference, will be updated by the update function.
+                this.prefix = prefix;
+                this.currentTile = 0;
+                this.currentIndex = 0;
+                this.totalTiles = totalTiles;
+                this.texture = textures[prefix + this.currentIndex];
+                this.material = material;
+                this.material.map = this.texture
+
+
+                this.tilesHorizontal = tilesHoriz;
+                this.tilesVertical = tilesVert;
+                // how many images does this spritesheet contain?
+                //  usually equals tilesHoriz * tilesVert, but not necessarily,
+                //  if there at blank tiles at the bottom of the spritesheet. 
+                this.numberOfTiles = numTiles;
+                this.texture.wrapS = this.texture.wrapT = THREE.RepeatWrapping;
+                this.texture.repeat.set(1 / this.tilesHorizontal, 1 / this.tilesVertical);
+
+                // how long should each image be displayed?
+                this.tileDisplayDuration = tileDispDuration;
+
+                // how long has the current image been displayed?
+                this.currentDisplayTime = 0;
+
+                // which image is currently being displayed?
+                var sTile = 0;
+
+                this.update = function(milliSec) {
+                    this.currentDisplayTime += milliSec;
+                    while (this.currentDisplayTime > this.tileDisplayDuration) {
+                        this.currentDisplayTime -= this.tileDisplayDuration;
+                        this.currentTile++;
+                        sTile = this.currentTile % this.numberOfTiles;
+                        // console.log(sTile,this.numberOfTiles)
+                        if (sTile == 0) {
+                            this.currentIndex++;
+                            console.log(this.currentIndex)
+                            if (this.currentTile == this.totalTiles) {
+                                this.currentIndex = 0;
+                                this.currentTile = 0;
+                                this.texture = textures[this.prefix + this.currentIndex];
+                                this.texture.wrapS = this.texture.wrapT = THREE.RepeatWrapping;
+                                this.texture.repeat.set(1 / this.tilesHorizontal, 1 / this.tilesVertical);
+                                this.material.map = this.texture;
+                            }
+                        }
+                        var currentColumn = sTile % this.tilesHorizontal;
+                        this.texture.offset.x = currentColumn / this.tilesHorizontal;
+                        var currentRow = Math.floor(sTile / this.tilesHorizontal);
+                        this.texture.offset.y = currentRow / this.tilesVertical;
+                    }
+                }
+            }
+
+        },
         addGlb(name) {
             var that = this;
             var gltf = this.threeAssets[name];
             var model = this.threeAssets[name].scene;
-            this.scene.add(model)
+            // this.scene.add(model)
             // var encoding = THREE.sRGBEncoding;
             // model.traverse(function(object) {
             //     if (object.isMesh) {
@@ -358,7 +463,7 @@ export default {
             model.position.z = 2;
             model.position.y = 2;
 
-            model.scale.copy(new THREE.Vector3(0.1, 0.1, 0.1))
+            // model.scale.copy(new THREE.Vector3(0.1, 0.1, 0.1))
             model.rotateX(-Math.PI / 2);
             // model.rotateZ(Math.PI)
 
@@ -377,21 +482,60 @@ export default {
 
             return model;
         },
+        addMarker(_pattern,_texture) {
+            var markerRoot = new THREE.Group();
+            this.scene.add(markerRoot)
+            var markerControls = new THREEx.ArMarkerControls(this.arToolkitContext, markerRoot, {
+                type: 'pattern',
+                patternUrl: `${this.publicPath}pattern/${_pattern}.patt`,
+            });
+
+            var model=this.addGlb(_texture);
+            markerRoot.add(model)
+        },
         addObj() {
             var that = this;
-            var model = this.addGlb('scene0');
-            var light = this.addGlb('light');
-            console.log(light)
-            light.children[0].layers.enable(1);
-            model.children.forEach(function(obj) {
-                // body...
-                obj.layers.enable(0);
-            })
+
+            this.addMarker('pattern-logo3','CesiumMan');
+            this.addMarker('pattern-marker1','DamagedHelmet');
+            this.addMarker('pattern-logo4','Bot_Skinned');
+            this.addMarker('pattern-marker2','CesiumMilkTruck');
+            this.addMarker('pattern-marker3','Soldier');
+            // var movie1 = this.addMovieClip('explosion');
+
+
+
+            // var model = this.addGlb('scene0');
+            // var light = this.addGlb('light');
+            // console.log(light)
+            // light.children[0].layers.enable(1);
+            // model.children.forEach(function(obj) {
+            //     // body...
+            //     obj.layers.enable(0);
+            // })
 
 
             // model.children[0].layers.enable(1);
-            var mouse = new THREE.Vector2();
-            this.raycaster = new THREE.Raycaster();
+            // var mouse = new THREE.Vector2();
+            // this.raycaster = new THREE.Raycaster();
+            // document.addEventListener('touchend', function(event) {
+            //     event.preventDefault();
+
+            //     // console.log( event.changedTouches[0].pageX)
+            //     mouse.x = (event.changedTouches[0].pageX / window.innerWidth) * 2 - 1;
+            //     mouse.y = -(event.changedTouches[0].pageY / window.innerHeight) * 2 + 1;
+
+            //     that.raycaster.setFromCamera(mouse, that.camera);
+
+            //     var intersects = that.raycaster.intersectObjects(model.children[0].children);
+            //     // console.log(intersects)
+            //     console.log('a')
+            //     if (intersects.length > 0) {
+            //         console.log('b')
+            //         that.touchFlag = true;
+            //     }
+
+            // }, false);
 
             // var dragControls = new DragControls(model.children[0].children, this.camera, document.getElementById('app'));
             // dragControls.addEventListener('dragstart', function() {
@@ -402,24 +546,7 @@ export default {
             //     // controls.enabled = true;
             // });
 
-            document.addEventListener('touchend', function(event) {
-                event.preventDefault();
 
-                // console.log( event.changedTouches[0].pageX)
-                mouse.x = (event.changedTouches[0].pageX / window.innerWidth) * 2 - 1;
-                mouse.y = -(event.changedTouches[0].pageY / window.innerHeight) * 2 + 1;
-
-                that.raycaster.setFromCamera(mouse, that.camera);
-
-                var intersects = that.raycaster.intersectObjects(model.children[0].children);
-                // console.log(intersects)
-                console.log('a')
-                if (intersects.length > 0) {
-                    console.log('b')
-                    that.touchFlag = true;
-                }
-
-            }, false);
 
 
             this.onRenderFcts.push(function(delta) {
@@ -461,6 +588,23 @@ export default {
             manager.onError = function(url) {
                 console.log('There was an error loading ' + url)
             }
+            var textureLoader = new THREE.TextureLoader(manager);
+            textureLoader.load(`${this.publicPath}img/explosion.jpg`, function(rs) {
+                that.movieAssets['explosion'] = rs
+            })
+            textureLoader.load(`${this.publicPath}img/run.png`, function(rs) {
+                that.movieAssets['run'] = rs
+            })
+
+            textureLoader.load(`${this.publicPath}img/lxu_texture0.png`, function(rs) {
+                that.movieAssets['lxu_texture0'] = rs
+            })
+            textureLoader.load(`${this.publicPath}img/lxu1_texture0.png`, function(rs) {
+                that.movieAssets['lxu1_texture0'] = rs
+            })
+            textureLoader.load(`${this.publicPath}img/lxu_texture1.png`, function(rs) {
+                that.movieAssets['lxu_texture1'] = rs
+            })
 
             var gltfLoader = new GLTFLoader(manager);
             var dracoLoader = new DRACOLoader();
@@ -471,18 +615,18 @@ export default {
             // gltfLoader.load(`${this.publicPath}model/Monster/Monster.gltf`, function(rs) {
             //     that.threeAssets['Monster'] = rs
             // })
-            // gltfLoader.load(`${this.publicPath}model/CesiumMan/CesiumMan.gltf`, function(rs) {
-            //     that.threeAssets['CesiumMan'] = rs
-            // })
-            // gltfLoader.load(`${this.publicPath}model/DamagedHelmet/DamagedHelmet.gltf`, function(rs) {
-            //     that.threeAssets['DamagedHelmet'] = rs
-            // })
-            // gltfLoader.load(`${this.publicPath}model/CesiumMilkTruck/CesiumMilkTruck.gltf`, function(rs) {
-            //     that.threeAssets['CesiumMilkTruck'] = rs
-            // })
-            // gltfLoader.load(`${this.publicPath}model/BotSkinned/Bot_Skinned.gltf`, function(rs) {
-            //     that.threeAssets['BotSkinned'] = rs
-            // })
+            gltfLoader.load(`${this.publicPath}model/CesiumMan/CesiumMan.gltf`, function(rs) {
+                that.threeAssets['CesiumMan'] = rs
+            })
+            gltfLoader.load(`${this.publicPath}model/DamagedHelmet/DamagedHelmet.gltf`, function(rs) {
+                that.threeAssets['DamagedHelmet'] = rs
+            })
+            gltfLoader.load(`${this.publicPath}model/CesiumMilkTruck/CesiumMilkTruck.gltf`, function(rs) {
+                that.threeAssets['CesiumMilkTruck'] = rs
+            })
+            gltfLoader.load(`${this.publicPath}model/BotSkinned/Bot_Skinned.gltf`, function(rs) {
+                that.threeAssets['Bot_Skinned'] = rs
+            })
             gltfLoader.load(`${this.publicPath}model/Soldier.glb`, function(rs) {
                 that.threeAssets['Soldier'] = rs
                 // that.addObj(rs);
