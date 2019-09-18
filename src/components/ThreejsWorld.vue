@@ -127,7 +127,7 @@ export default {
                 detectionMode: 'mono',
                 maxDetectionRate: 30,
             })
-            this.arToolkitContext=arToolkitContext;
+            this.arToolkitContext = arToolkitContext;
             // initialize it
             arToolkitContext.init(function onCompleted() {
                 // copy projection matrix to camera
@@ -460,10 +460,11 @@ export default {
             // skeleton.visible = true;
             // this.scene.add(skeleton);
 
-            model.position.z = 2;
-            model.position.y = 2;
-
-            // model.scale.copy(new THREE.Vector3(0.1, 0.1, 0.1))
+            // model.position.z = 2;
+            // model.position.y = 2;
+            if (name == 'CesiumMilkTruck')
+                model.scale.copy(new THREE.Vector3(0.1, 0.1, 0.1))
+            else model.scale.copy(new THREE.Vector3(0.5, 0.5, 0.5))
             model.rotateX(-Math.PI / 2);
             // model.rotateZ(Math.PI)
 
@@ -482,7 +483,7 @@ export default {
 
             return model;
         },
-        addMarker(_pattern,_texture) {
+        addMarker(_pattern, _texture) {
             var markerRoot = new THREE.Group();
             this.scene.add(markerRoot)
             var markerControls = new THREEx.ArMarkerControls(this.arToolkitContext, markerRoot, {
@@ -490,17 +491,18 @@ export default {
                 patternUrl: `${this.publicPath}pattern/${_pattern}.patt`,
             });
 
-            var model=this.addGlb(_texture);
+            var model = this.addGlb(_texture);
+
             markerRoot.add(model)
         },
         addObj() {
             var that = this;
 
-            this.addMarker('pattern-logo3','CesiumMan');
-            this.addMarker('pattern-marker1','DamagedHelmet');
-            this.addMarker('pattern-logo4','Bot_Skinned');
-            this.addMarker('pattern-marker2','CesiumMilkTruck');
-            this.addMarker('pattern-marker3','Soldier');
+            this.addMarker('pattern-logo3', 'CesiumMan');
+            this.addMarker('pattern-marker1', 'DamagedHelmet');
+            this.addMarker('pattern-logo4', 'Bot_Skinned');
+            this.addMarker('pattern-marker2', 'CesiumMilkTruck');
+            this.addMarker('pattern-marker3', 'Soldier');
             // var movie1 = this.addMovieClip('explosion');
 
 
