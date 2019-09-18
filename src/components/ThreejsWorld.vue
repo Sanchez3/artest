@@ -1,5 +1,6 @@
 <template>
     <div class="hello">
+        <h2>Intersect - {{intersectObj}}</h2>
         <!-- <video id="video" autoplay></video> -->
         <Loader v-bind:per="per" v-if="per!==100" />
         <div id="canvas-element"></div>
@@ -52,6 +53,7 @@ export default {
     },
     data() {
         return {
+            intersectObj: 'null',
             per: 0,
             webcamAllowed: true,
             scene: '',
@@ -443,8 +445,16 @@ export default {
         },
         addGlb(name) {
             var that = this;
+            var container = new THREE.Object3D();
             var gltf = this.threeAssets[name];
             var model = this.threeAssets[name].scene;
+            var geometry = new THREE.PlaneGeometry(1, 1);
+            var material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff, side: THREE.DoubleSide });
+            var plane = new THREE.Mesh(geometry, material);
+            plane.rotateX(Math.PI / 2)
+            plane.name = name;
+
+            this.scene.add(plane);
             // this.scene.add(model)
             // var encoding = THREE.sRGBEncoding;
             // model.traverse(function(object) {
@@ -461,7 +471,7 @@ export default {
             // this.scene.add(skeleton);
 
             // model.position.z = 2;
-            // model.position.y = 2;
+            model.position.y = 1;
             if (name == 'CesiumMilkTruck')
                 model.scale.copy(new THREE.Vector3(0.1, 0.1, 0.1))
             else model.scale.copy(new THREE.Vector3(0.5, 0.5, 0.5))
@@ -481,7 +491,9 @@ export default {
 
             this.allMixers.push(mixer)
 
-            return model;
+            container.add(plane, model)
+
+            return container;
         },
         addMarker(_pattern, _texture) {
             var markerRoot = new THREE.Group();
@@ -518,26 +530,25 @@ export default {
 
 
             // model.children[0].layers.enable(1);
-            // var mouse = new THREE.Vector2();
-            // this.raycaster = new THREE.Raycaster();
-            // document.addEventListener('touchend', function(event) {
-            //     event.preventDefault();
-
-            //     // console.log( event.changedTouches[0].pageX)
-            //     mouse.x = (event.changedTouches[0].pageX / window.innerWidth) * 2 - 1;
-            //     mouse.y = -(event.changedTouches[0].pageY / window.innerHeight) * 2 + 1;
-
-            //     that.raycaster.setFromCamera(mouse, that.camera);
-
-            //     var intersects = that.raycaster.intersectObjects(model.children[0].children);
-            //     // console.log(intersects)
-            //     console.log('a')
-            //     if (intersects.length > 0) {
-            //         console.log('b')
-            //         that.touchFlag = true;
-            //     }
-
-            // }, false);
+            var INTERSECTED;
+            var mouse = new THREE.Vector2();
+            this.raycaster = new THREE.Raycaster();
+            document.addEventListener('touchend', function(event) {
+                event.preventDefault();
+                // console.log( event.changedTouches[0].pageX)
+                mouse.x = (event.changedTouches[0].pageX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.changedTouches[0].pageY / window.innerHeight) * 2 + 1;
+                that.raycaster.setFromCamera(mouse, that.camera);
+                var intersects = that.raycaster.intersectObjects(that.scene.children, true);
+                // console.log(intersects)
+                if (intersects.length > 0) {
+                    INTERSECTED = intersects[0].object;
+                    console.log(INTERSECTED)
+                    that.intersectObj = `${INTERSECTED.constructor.name} ${INTERSECTED.name}`
+                } else {
+                    that.intersectObj = 'null';
+                }
+            }, false);
 
             // var dragControls = new DragControls(model.children[0].children, this.camera, document.getElementById('app'));
             // dragControls.addEventListener('dragstart', function() {
@@ -650,6 +661,16 @@ export default {
 <style scoped>
 h3 {
     margin: 40px 0 0;
+}
+
+h2 {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #fff;
 }
 
 ul {
