@@ -221,14 +221,14 @@ export default {
             //     orbitControls.update();
             // })
 
-            var hemiLight = new THREE.HemisphereLight();
-            this.scene.add(hemiLight);
-            const light1 = new THREE.AmbientLight(0xffffff, 0.5);
-            this.camera.add(light1);
+            // var hemiLight = new THREE.HemisphereLight();
+            // this.scene.add(hemiLight);
+            // const light1 = new THREE.AmbientLight(0xffffff, 0.5);
+            // this.camera.add(light1);
 
-            var light2 = new THREE.DirectionalLight(0xffffff, 1.5 * Math.PI);
-            light2.position.set(0.5, 0, 0.866); // ~60º
-            this.camera.add(light2);
+            // var light2 = new THREE.DirectionalLight(0xffffff, 1.5 * Math.PI);
+            // light2.position.set(0.5, 0, 0.866); // ~60º
+            // this.camera.add(light2);
 
 
 
@@ -527,8 +527,7 @@ export default {
                 // model.renderOrder = -2;
                 // console.log(mesh0.layers,mesh1.layers,model.renderOrder)
                 // mesh1.add(model)
-                mesh0.name = name;
-                
+
                 container.add(model)
             }
             if (_type == 2) {
@@ -545,8 +544,8 @@ export default {
 
             }
             if(_type==1){
-                model.position.y=2;
-                model.scale.copy(new THREE.Vector3(1.2, 1.2, 1.2))
+                model.position.y=-2;
+                model.scale.copy(new THREE.Vector3(0.1, 0.1, 0.1))
                 container.add( model);
             }
 
@@ -573,9 +572,10 @@ export default {
 
             // this.addMarker('pattern-logo3', 'CesiumMan');
             // this.addMarker('pattern-marker1', 'DamagedHelmet');
-            this.addMarker('pattern-logo3', 'CesiumMan', 1);
+            this.addMarker('pattern-logo3', 'scene0', 1);
             this.addMarker('pattern-marker3', 'Soldier', 2);
-            this.addMarker('pattern-marker4', 'DamagedHelmet', 3);
+            this.addMarker('pattern-marker4', 'CesiumMan', 3);
+
             // var movie1 = this.addMovieClip('explosion');
 
 
