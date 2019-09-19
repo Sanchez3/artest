@@ -528,7 +528,8 @@ export default {
                 // console.log(mesh0.layers,mesh1.layers,model.renderOrder)
                 // mesh1.add(model)
                 mesh0.name = name;
-                container.add(mesh1, mesh0)
+                
+                container.add(model)
             }
             if (_type == 2) {
                 var geometry = new THREE.PlaneGeometry(2, 2);
