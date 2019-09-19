@@ -443,38 +443,39 @@ export default {
             }
 
         },
-        addGlb(name) {
+        addGlb(name, _type) {
             var that = this;
             var container = new THREE.Object3D();
             var gltf = this.threeAssets[name];
+            console.log(gltf)
             var model = this.threeAssets[name].scene;
-            var geometry = new THREE.PlaneGeometry(1, 1);
-            var material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff, side: THREE.DoubleSide });
-            var plane = new THREE.Mesh(geometry, material);
-            plane.rotateX(Math.PI / 2)
-            plane.name = name;
+            // console.log()
 
-            this.scene.add(plane);
+            var _type = _type || 1
+
+
             // this.scene.add(model)
             // var encoding = THREE.sRGBEncoding;
-            // model.traverse(function(object) {
-            //     if (object.isMesh) {
-            //         object.castShadow = true;
-            //         var material = object.material;
-            //         if (material.map) material.map.encoding = encoding;
-            //         if (material.emissiveMap) material.emissiveMap.encoding = encoding;
-            //         if (material.map || material.emissiveMap) material.needsUpdate = true;
-            //     }
-            // });
+            model.traverse(function(object) {
+                if (object.isMesh) {
+                    // object.depthTest = false;
+                    object.renderOrder = 0;
+                    // object.castShadow = true;
+                    // var material = object.material;
+                    // if (material.map) material.map.encoding = encoding;
+                    // if (material.emissiveMap) material.emissiveMap.encoding = encoding;
+                    // if (material.map || material.emissiveMap) material.needsUpdate = true;
+                }
+            });
             // var skeleton = new THREE.SkeletonHelper(model);
             // skeleton.visible = true;
             // this.scene.add(skeleton);
 
             // model.position.z = 2;
-            model.position.y = 1;
+            // model.position.y = 1;
             if (name == 'CesiumMilkTruck')
-                model.scale.copy(new THREE.Vector3(0.1, 0.1, 0.1))
-            else model.scale.copy(new THREE.Vector3(0.5, 0.5, 0.5))
+                model.scale.copy(new THREE.Vector3(0.5, 0.5, 0.5))
+            else model.scale.copy(new THREE.Vector3(1, 1, 1))
             model.rotateX(-Math.PI / 2);
             // model.rotateZ(Math.PI)
 
@@ -491,11 +492,70 @@ export default {
 
             this.allMixers.push(mixer)
 
-            container.add(plane, model)
+            if (_type == 3) {
+                let geometry1 = new THREE.CylinderGeometry(1.6, 1.6, 5, 32, 1);
+                var tiles = this.threeAssets['tiles']
+                tiles.wrapS = THREE.RepeatWrapping;
+                tiles.wrapT = THREE.RepeatWrapping;
+                tiles.repeat.set(4, 2);
+                let material1 = new THREE.MeshBasicMaterial({
+                    transparent: true,
+                    map: tiles,
+                    side: THREE.BackSide
+                });
+                var mesh1 = new THREE.Mesh(geometry1, material1);
+                mesh1.position.y = -2;
+                // material1.depthTest = false;
+                mesh1.renderOrder = 1;
+
+                let geometry0 = new THREE.RingGeometry(1.6, 9, 32);
+                let material0 = new THREE.MeshBasicMaterial({
+                    // map: loader.load( 'images/color-grid.png' ), // for testing placement
+                    colorWrite: false
+                });
+                let mesh0 = new THREE.Mesh(geometry0, material0);
+                mesh0.rotation.x = -Math.PI / 2;
+                model.position.y = -2;
+                // material0.depthTest = false;
+                mesh0.renderOrder = 2;
+
+                // mesh0.layers.set(1);
+                // mesh1.layers.set(1);
+                // model.layers.set(0);
+                // mesh0.renderOrder = 1;
+                // mesh1.renderOrder = -1;
+                // model.renderOrder = -2;
+                // console.log(mesh0.layers,mesh1.layers,model.renderOrder)
+                // mesh1.add(model)
+                mesh0.name = name;
+                container.add(mesh1, mesh0)
+            }
+            if (_type == 2) {
+                var geometry = new THREE.PlaneGeometry(2, 2);
+                var material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff, side: THREE.DoubleSide });
+                var plane = new THREE.Mesh(geometry, material);
+                plane.rotateX(Math.PI / 2)
+                plane.position.y=-1;
+                plane.name = name;
+
+                model.position.y = 0;
+                model.scale.copy(new THREE.Vector3(1.5, 1.5, 1.5))
+                container.add(plane, model);
+
+            }
+            if(_type==1){
+                model.position.y=2;
+                model.scale.copy(new THREE.Vector3(1.2, 1.2, 1.2))
+                container.add( model);
+            }
+
+
+
+
 
             return container;
         },
-        addMarker(_pattern, _texture) {
+        addMarker(_pattern, _texture, _type) {
             var markerRoot = new THREE.Group();
             this.scene.add(markerRoot)
             var markerControls = new THREEx.ArMarkerControls(this.arToolkitContext, markerRoot, {
@@ -503,18 +563,18 @@ export default {
                 patternUrl: `${this.publicPath}pattern/${_pattern}.patt`,
             });
 
-            var model = this.addGlb(_texture);
+            var model = this.addGlb(_texture, _type);
 
             markerRoot.add(model)
         },
         addObj() {
             var that = this;
 
-            this.addMarker('pattern-logo3', 'CesiumMan');
-            this.addMarker('pattern-marker1', 'DamagedHelmet');
-            this.addMarker('pattern-logo4', 'Bot_Skinned');
-            this.addMarker('pattern-marker2', 'CesiumMilkTruck');
-            this.addMarker('pattern-marker3', 'Soldier');
+            // this.addMarker('pattern-logo3', 'CesiumMan');
+            // this.addMarker('pattern-marker1', 'DamagedHelmet');
+            this.addMarker('pattern-logo3', 'CesiumMan', 1);
+            this.addMarker('pattern-marker3', 'Soldier', 2);
+            this.addMarker('pattern-marker4', 'DamagedHelmet', 3);
             // var movie1 = this.addMovieClip('explosion');
 
 
@@ -617,6 +677,10 @@ export default {
             })
             textureLoader.load(`${this.publicPath}img/lxu_texture1.png`, function(rs) {
                 that.movieAssets['lxu_texture1'] = rs
+            })
+
+            textureLoader.load(`${this.publicPath}img/tiles.jpg`, function(rs) {
+                that.threeAssets['tiles'] = rs
             })
 
             var gltfLoader = new GLTFLoader(manager);
