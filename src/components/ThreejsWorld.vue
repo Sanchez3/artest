@@ -572,9 +572,9 @@ export default {
 
             // this.addMarker('pattern-logo3', 'CesiumMan');
             // this.addMarker('pattern-marker1', 'DamagedHelmet');
-            this.addMarker('pattern-logo3', 'scene0', 1);
-            this.addMarker('pattern-marker3', 'Soldier', 2);
-            this.addMarker('pattern-marker4', 'CesiumMan', 3);
+            this.addMarker('pattern-marker1', 'scene0', 1);
+            this.addMarker('pattern-marker2', 'Soldier', 2);
+            this.addMarker('pattern-marker3', 'CesiumMan', 3);
 
             // var movie1 = this.addMovieClip('explosion');
 
