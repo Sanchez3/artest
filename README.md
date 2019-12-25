@@ -14,16 +14,16 @@
 
 1. https://ngd.lxustudio.cn/ 
 
-   ![ngd-marker](/public/ngd-marker.png)
+   ![ngd-marker](./public/ngd-marker.png)
 
 2. To try it on your phone, it is only 2 easy steps, check it out!
    1. Open this [hiro marker image](https://jeromeetienne.github.io/AR.js/data/images/HIRO.jpg) in your desktop browser. 
 
-      ![hiro-marker](/public/hiro-marker.png)
+      ![hiro-marker](./public/hiro-marker.png)
 
    2. Open this [augmented reality webapps](https://jeromeetienne.github.io/AR.js/three.js/examples/mobile-performance.html) in your phone browser, and point it at your screen. 
 
-      ![hiro-qrcode](/public/hiro-qrcode.png)
+      ![hiro-qrcode](./public/hiro-qrcode.png)
 
 ### 技术障碍：
 AR标记 需要如上图所示（可进行一些修改） 由于是前端实时抓取摄像头画面帧，通过分析处理当前帧具体像素匹配标识码，那么过于复杂的标记方法（例如，特征点计算和训练图形等），在前端计算能力不足，以至于3D展现部分性能不足。
